@@ -1,19 +1,20 @@
 {
   "expo": {
-    "name": "FarmSenseExpo",
-    "slug": "FarmSenseExpo",
+    "name": "FarmSense",
+    "slug": "farmsense",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.artmer.FarmSenseExpo"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,10 +22,64 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.artmer.FarmSenseExpo",
+      "hardwareAccelerated": true,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDp8IyjI7i36M1K4MXI5Zj8Zs35BMq8P2c"
+        }
+      },
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-dev-client",
+      "expo-asset",
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "농장 구역 설정을 위해 위치 정보가 필요합니다."
+        }
+      ],
+      [
+        "@react-native-voice/voice",
+        {
+          "microphonePermission": "영농일지 작성을 위해 음성 인식을 허용해주세요."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "병해충 진단을 위해 카메라 권한이 필요합니다."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "사진을 선택하려면 갤러리 접근 권한이 필요합니다."
+        }
+      ],
+      "expo-build-properties"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "fc4d9ea3-ac4a-42b7-9167-c210d4ce8865"
+      }
+    },
+    "experiments": {
+      "baseUrl": "/webapp"
+    },
+    "owner": "artmer"
   }
 }

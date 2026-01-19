@@ -1,20 +1,87 @@
+/**
+ * App.tsx
+ * FarmSense 앱 진입점
+ * 
+ * AsyncStorage 초기화 완료 후 화면 렌더링
+ */
+
+import 'react-native-gesture-handler';
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { LogBox } from 'react-native';
+
+// Suppress all logs for demo/production readiness
+LogBox.ignoreAllLogs(true);
+
+
+// Navigation & Store
+import { RootNavigator } from './src/navigation/RootNavigator';
+import { initializeStore, useStore } from './src/store/useStore';
+import GlobalErrorBar from './src/components/common/GlobalErrorBar';
 
 export default function App() {
+  const [isReady, setIsReady] = useState(false);
+  const isInitialized = useStore((state) => state.isInitialized);
+
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        console.log('🚀 [App] Initializing Store...');
+        await initializeStore();
+        console.log('✅ [App] Store initialized');
+
+        // ✅ farmInfo 전파 확인
+        const currentState = useStore.getState();
+        console.log('📊 [App] Current farmInfo:', currentState.farmInfo);
+        console.log('🆔 [App] farmId:', currentState.farmInfo?.id);
+
+        if (!currentState.farmInfo?.id) {
+          console.error('❌ [App] farmInfo.id is missing!');
+        } else if (currentState.farmInfo.id === 'farm-123') {
+          console.log('✅ [App] Default farmId (farm-123) confirmed');
+        } else {
+          console.log('✅ [App] Custom farmId confirmed:', currentState.farmInfo.id);
+        }
+
+        setIsReady(true);
+      } catch (error) {
+        console.error('❌ [App] Store initialization failed:', error);
+        // 초기화 실패해도 앱은 실행 (빈 상태로)
+        setIsReady(true);
+      }
+    };
+
+    initialize();
+  }, []);
+
+  // 초기화 완료될 때까지 로딩 화면 표시
+  if (!isReady || !isInitialized) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#10B981" />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <RootNavigator />
+        <GlobalErrorBar />
+        <StatusBar style="auto" />
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  loadingContainer: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
   },
 });
