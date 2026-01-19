@@ -40,28 +40,9 @@ allprojects {
     }
 }
 
-// ========================================
-// FIX: Force AndroidX and exclude old Android Support Library
-// This resolves the conflict between androidx.core and com.android.support
-// ========================================
+// Fix AndroidX conflict - exclude support library from ALL subprojects
 subprojects {
-    afterEvaluate { project ->
-        if (project.hasProperty('android')) {
-            project.configurations.all {
-                resolutionStrategy {
-                    // Force AndroidX versions
-                    force 'androidx.core:core:1.13.1'
-                    force 'androidx.core:core-ktx:1.13.1'
-                    force 'androidx.appcompat:appcompat:1.6.1'
-                    force 'androidx.vectordrawable:vectordrawable:1.1.0'
-                    force 'androidx.vectordrawable:vectordrawable-animated:1.1.0'
-                    force 'androidx.fragment:fragment:1.6.2'
-                    force 'androidx.activity:activity:1.8.2'
-                }
-                
-                // Exclude ALL old Android Support Library modules
-                exclude group: 'com.android.support'
-            }
-        }
+    configurations.configureEach {
+        exclude group: 'com.android.support'
     }
 }
