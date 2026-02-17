@@ -1,155 +1,190 @@
+// ============================================
+// v2.1 Navigation Types - 6탭 구조
+// ============================================
+
 export type RootStackParamList = {
-    // Auth
-    AuthIntro: undefined;
-    Login: undefined;
-    SignUp: undefined;
-    ForgotPassword: undefined;
-    Home: undefined;
-    Menu: undefined; // Menu Modal
-    OnboardingSlides: undefined;
+  // Entry
+  Splash: undefined;
+  OnboardingSlides: undefined;
 
+  // Auth
+  Login: undefined;
+  SignUp: undefined;
+  ForgotPassword: undefined;
 
-    // Settings
-    Settings: undefined;
-    PermissionRequest: undefined;
-    FarmRegistration: undefined;
-    FarmBasicInfo: undefined;
-    FarmDetailInfo: undefined;
-    AlertSettings: undefined;
-    SensorRegistration: undefined;
-    AccountSettings: undefined;
-    NotificationSettings: undefined;
+  // Main
+  MainTab: { screen?: keyof MainTabParamList };
 
-    // New Settings
-    FarmDetail: undefined;
-    SoilEnvironment: undefined;
-    SectorManage: undefined;
-    SensorManage: undefined;
-    Notification: undefined;
-    Help: undefined;
-    Support: undefined;
-    AppInfo: undefined;
-
-    // Main
-    MainTab: { screen?: keyof MainTabParamList }; // Bottom Tab Host with optional nested screen
-    QnAScreen: undefined; // AI 상담소
-
-    // Core Features
-    DailyPrescription: undefined;
-    GrowthDiary: undefined;
-    FarmMap: undefined;
-    FarmMapAdvanced: undefined;
-    FacilityInfo: undefined;
-    ReverseAnalysis: undefined;
-    PesticideRecord: undefined;
-    CanopyCamera: undefined;
-
-    // Misc
-    Profile: undefined;
-    NotificationList: undefined;
-    Terms: undefined;
-    PrivacyPolicy: undefined;
-
-    // Fullscreen Modals / Stacks
-    SmartLens: undefined; // Camera
-    LogWrite: { date?: string; logId?: string }; // Create/Edit Log
-    PostWrite: undefined; // New Post
-    PostDetail: { postId: string }; // View Post
-    PesticideManagement: undefined; // Safety Check
-    Diagnosis: undefined; // AI Diagnosis Camera
-    DiagnosisResult: { imageUri: string; result: any }; // AI Diagnosis Result
-    FarmDoctor: undefined;
-    SmartFarm: undefined;
-    Irrigation: undefined;
-    Fertilizer: undefined;
-    Environment: undefined;
-    HarvestPrediction: undefined;
-    Prevention: undefined;
-    DiagnosisHistory: undefined;
-    PrescriptionGuide: undefined;
-
-    // New Features (Jan 2026)
-    FertilizerPrescription: { pnuCode: string };
-    Benchmark: undefined;
-    YearlyReport: { year?: number };
+  // Modals
+  Menu: undefined;
 };
 
+// 6탭 구조
 export type MainTabParamList = {
-    HomeTab: undefined;
-    FarmingLog: undefined;
-    Community: undefined;
-    MyFarm: undefined;
-    SmartLens: undefined;
-    // Menu removed from Tab
+  HomeTab: undefined;
+  ConsultTab: undefined;
+  DiagnosisTab: undefined;
+  LogTab: undefined;
+  MyFarmTab: undefined;
+  MoreTab: undefined;
 };
 
-// Farming Log Types
+// 탭 1: 홈 (보고서 포함)
+export type HomeStackParamList = {
+  Home: undefined;
+  TodayReport: undefined;
+  ReportList: undefined;
+  IrrigationDetail: undefined;
+  DiagnosisDetail: undefined;
+  PredictionDetail: undefined;
+  DSSDetail: undefined;
+  SensorDetail: undefined;
+  RealtimeDetail: undefined;
+  SprayDetail: undefined;
+  FertilizerDetail: undefined;
+};
+
+// TodayStackNavigator 에서 사용하는 별칭
+export type TodayStackParamList = HomeStackParamList;
+
+// 탭 2: AI 상담
+export type ConsultStackParamList = {
+  ConsultHome: undefined;
+  QnA: undefined;
+};
+
+// (deprecated) 보고서 탭 - 이제 홈에서 접근
+export type ReportStackParamList = {
+  ReportList: undefined;
+  IrrigationDetail: undefined;
+  DiagnosisDetail: undefined;
+  PredictionDetail: undefined;
+  DSSDetail: undefined;
+  SensorDetail: undefined;
+  RealtimeDetail: undefined;
+  SprayDetail: undefined;
+  FertilizerDetail: undefined;
+};
+
+// 탭 3: 진단
+export type DiagnosisStackParamList = {
+  DiagnosisHub: undefined;
+  DiagnosisCamera: undefined;
+  DiagnosisResult: { imageUri: string; result?: any };
+  GrowthRecord: undefined;
+  GrowthRecordWrite: { hasIssue?: boolean };
+  CanopyGuide: undefined;
+  CanopyCamera: undefined;
+};
+
+// 탭 4: 영농일지
+export type LogStackParamList = {
+  FarmingLog: undefined;
+  LogWrite: { date?: string; logId?: string };
+  AutoLog: undefined;
+};
+
+// 탭 5: 내 농장
+export type MyFarmStackParamList = {
+  MyFarmHub: undefined;
+  UnifiedFarmSettings: undefined;
+  SensorManage: undefined;
+  SensorRegistration: undefined;
+  ExternalSensor: undefined;
+  FarmMap: undefined;
+  ProductHistory: undefined;
+  Certificates: undefined;
+  // GAP 인증 관리
+  GAPHub: undefined;
+  GAPChecklist: undefined;
+  SoilTestForm: undefined;
+  WaterTestForm: undefined;
+  FertilizerForm: undefined;
+  HarvestForm: undefined;
+  TrainingForm: undefined;
+  ExportDashboard: undefined;
+  Sealing: undefined;
+};
+
+// 탭 6: 더보기
+export type MoreStackParamList = {
+  MoreMenu: undefined;
+  NotificationSettings: undefined;
+  AppSettings: undefined;
+  HelpCenter: undefined;
+  AppInfo: undefined;
+  Terms: undefined;
+  Profile: undefined;
+  NotificationList: undefined;
+  Community: undefined;
+  Consultation: undefined;
+  PrivacyPolicy: undefined;
+  PostWrite: { topicId?: string };
+  TopicDetail: { topic: any };
+};
+
+// Farming Log Types (preserved from v1)
 export enum LogCategory {
-    GROWTH = 'GROWTH',     // 생육관리
-    WATER = 'WATER',       // 관수/관비
-    PEST = 'PEST',         // 방제
-    TREE = 'TREE',         // 수체관리
-    HARVEST = 'HARVEST',   // 수확
-    SHIPPING = 'SHIPPING', // 출하
-    FACILITY = 'FACILITY', // 시설관리
-    ETC = 'ETC'            // 기타
+  GROWTH = 'GROWTH',
+  WATER = 'WATER',
+  PEST = 'PEST',
+  TREE = 'TREE',
+  HARVEST = 'HARVEST',
+  SHIPPING = 'SHIPPING',
+  FACILITY = 'FACILITY',
+  ETC = 'ETC',
 }
 
 export interface FarmingLogBase {
-    id: string;
-    date: string;
-    weather?: {
-        desc: string;
-        temp: number;
-        humidity: number;
-    };
-    category: LogCategory;
-    images?: string[];
-    memo?: string;
+  id: string;
+  date: string;
+  weather?: { desc: string; temp: number; humidity: number };
+  category: LogCategory;
+  images?: string[];
+  memo?: string;
 }
 
 export interface GrowthLog extends FarmingLogBase {
-    category: LogCategory.GROWTH;
-    stage?: string; // 생육단계
-    observation?: {
-        newShootLength?: string; // 신초길이
-        leafStatus?: 'GOOD' | 'CAUTION' | 'BAD';
-        fruitSize?: string;
-        sugarContent?: string;
-    };
+  category: LogCategory.GROWTH;
+  stage?: string;
+  observation?: {
+    newShootLength?: string;
+    leafStatus?: 'GOOD' | 'CAUTION' | 'BAD';
+    fruitSize?: string;
+    sugarContent?: string;
+  };
 }
 
 export interface WaterLog extends FarmingLogBase {
-    category: LogCategory.WATER;
-    type: 'WATER' | 'FERTILIZER'; // 관수 OR 액비
-    amount?: string; // 관수량 (L or min)
-    fertilizerName?: string;
-    dilutionRatio?: string; // 희석배율
+  category: LogCategory.WATER;
+  type: 'WATER' | 'FERTILIZER';
+  amount?: string;
+  fertilizerName?: string;
+  dilutionRatio?: string;
 }
 
 export interface PestLog extends FarmingLogBase {
-    category: LogCategory.PEST;
-    purpose: 'DISEASE' | 'INSECT' | 'PREVENTION';
-    targetPest?: string;
-    pesticideName?: string;
-    dilutionRatio?: string;
-    amount?: string; // 살포량
-    method?: 'SPRAY' | 'FOG' | 'DRENCH'; // 분무/연무/관주
-    safeHarvestDate?: string; // 수확가능일
+  category: LogCategory.PEST;
+  purpose: 'DISEASE' | 'INSECT' | 'PREVENTION';
+  targetPest?: string;
+  pesticideName?: string;
+  dilutionRatio?: string;
+  amount?: string;
+  method?: 'SPRAY' | 'FOG' | 'DRENCH';
+  safeHarvestDate?: string;
 }
 
 export interface HarvestLog extends FarmingLogBase {
-    category: LogCategory.HARVEST;
-    variety?: string;
-    amount?: string; // kg
-    grade?: 'SPECIAL' | 'HIGH' | 'MID' | 'LOW';
-    sugarContent?: string;
+  category: LogCategory.HARVEST;
+  variety?: string;
+  amount?: string;
+  grade?: 'SPECIAL' | 'HIGH' | 'MID' | 'LOW';
+  sugarContent?: string;
 }
 
 export type FarmingLogEntry =
-    | FarmingLogBase
-    | GrowthLog
-    | WaterLog
-    | PestLog
-    | HarvestLog;
-
+  | FarmingLogBase
+  | GrowthLog
+  | WaterLog
+  | PestLog
+  | HarvestLog;
