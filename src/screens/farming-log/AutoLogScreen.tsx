@@ -165,28 +165,110 @@ const AutoLogScreen = () => {
       console.warn('살포 이력 조회 실패:', e);
     }
 
-    // 5. 비료 시비 기록 (GAP Fertilizer Audit)
+    // 5. 비료 시비 기록 (GAP Fertilizer)
     try {
       const { gapFertilizerApi } = await import('../../services/gapFertilizerApi');
-      const auditData = await gapFertilizerApi.getAudit(farmId || '');
-      if (auditData?.records_summary && auditData.records_summary.length > 0) {
-        auditData.records_summary.forEach((rec, idx) => {
+      let fertilizerAdded = false;
+
+      // 5-1. 감사 기록 조회
+      try {
+        const auditData = await gapFertilizerApi.getAudit(farmId || '');
+        if (auditData?.records_summary && auditData.records_summary.length > 0) {
+          auditData.records_summary.forEach((rec, idx) => {
+            autoItems.push({
+              id: `f${idx}`,
+              category: 'fertilizer',
+              icon: 'nutrition',
+              iconColor: '#059669',
+              bgColor: '#ECFDF5',
+              title: `비료 시비: ${rec.fertilizer_name}`,
+              detail: `총 ${rec.total_amount_kg}kg · ${rec.application_count}회 시비${rec.last_applied ? ` (최근: ${rec.last_applied})` : ''}`,
+              time: rec.last_applied || '기록 있음',
+              checked: true,
+              source: 'GAP 비료 관리',
+            });
+          });
+          fertilizerAdded = true;
+        }
+        // 감사 준수율 카드
+        if (auditData && !fertilizerAdded) {
           autoItems.push({
-            id: `f${idx}`,
+            id: 'f-audit',
             category: 'fertilizer',
             icon: 'nutrition',
             iconColor: '#059669',
             bgColor: '#ECFDF5',
-            title: `비료 시비: ${rec.fertilizer_name}`,
-            detail: `총 ${rec.total_amount_kg}kg · ${rec.application_count}회 시비${rec.last_applied ? ` (최근: ${rec.last_applied})` : ''}`,
-            time: rec.last_applied || '기록 있음',
+            title: 'GAP 비료 관리',
+            detail: `GAP 준수율 ${auditData.compliance_rate ?? 0}% · 인증: ${auditData.certification_status === 'ready' ? '인증 가능' : auditData.certification_status === 'needs_improvement' ? '개선 필요' : '확인중'}`,
+            time: '금일 기준',
             checked: true,
             source: 'GAP 비료 관리',
           });
+          fertilizerAdded = true;
+        }
+      } catch (_auditErr) {
+        // audit 실패 시 아래 추천으로 대체
+      }
+
+      // 5-2. 추천 데이터로 대체
+      if (!fertilizerAdded) {
+        try {
+          const recData = await gapFertilizerApi.getRecommendations(farmId || '');
+          if (recData?.recommendations && recData.recommendations.length > 0) {
+            const topRec = recData.recommendations[0];
+            const deficits = recData.nutrient_balance
+              ? Object.entries(recData.nutrient_balance)
+                  .filter(([, v]) => v.level === 'deficient' || v.level === 'severe')
+                  .map(([k]) => k)
+              : [];
+            autoItems.push({
+              id: 'f-rec',
+              category: 'fertilizer',
+              icon: 'nutrition',
+              iconColor: '#059669',
+              bgColor: '#ECFDF5',
+              title: 'GAP 비료 추천',
+              detail: `${topRec.fertilizer_name} ${topRec.amount_kg_per_ha}kg/ha 추천${deficits.length > 0 ? ` · 결핍: ${deficits.join(', ')}` : ''}`,
+              time: '금일 기준',
+              checked: false,
+              source: 'GAP 비료 분석',
+            });
+            fertilizerAdded = true;
+          }
+        } catch (_recErr) {
+          // 추천도 실패
+        }
+      }
+
+      // 5-3. 최종 기본 카드
+      if (!fertilizerAdded) {
+        autoItems.push({
+          id: 'f-default',
+          category: 'fertilizer',
+          icon: 'nutrition',
+          iconColor: '#059669',
+          bgColor: '#ECFDF5',
+          title: 'GAP 비료 관리',
+          detail: '비료 시비 기록이 없습니다. 시비 후 기록을 등록하세요.',
+          time: '금일 기준',
+          checked: false,
+          source: 'GAP 비료 관리',
         });
       }
     } catch (e) {
-      console.warn('비료 기록 조회 실패:', e);
+      // 모듈 import 자체 실패 시에도 기본 카드 표시
+      autoItems.push({
+        id: 'f-default',
+        category: 'fertilizer',
+        icon: 'nutrition',
+        iconColor: '#059669',
+        bgColor: '#ECFDF5',
+        title: 'GAP 비료 관리',
+        detail: '비료 데이터를 불러올 수 없습니다.',
+        time: '금일 기준',
+        checked: false,
+        source: 'GAP 비료 관리',
+      });
     }
 
     // 데이터가 없으면 안내 메시지
