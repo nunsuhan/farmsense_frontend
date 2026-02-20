@@ -6,6 +6,7 @@ import { ScreenWrapper } from '../../components/common/ScreenWrapper';
 import { Text } from '../../components/common/Text';
 import { Card } from '../../components/common/Card';
 import { colors, spacing } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeProvider';
 import { pesticideApi } from '../../services/pesticideApi';
 import { sprayApi, type PesticideInventory, type BarcodeScanResult } from '../../services/sprayApi';
 import { pesticideRecommendationApi } from '../../services/pesticideRecommendationApi';
@@ -14,6 +15,7 @@ import type { SafetyCheck } from './types';
 
 export const PesticideManagementScreen: React.FC = () => {
     const navigation = useNavigation();
+    const { colors: tc } = useTheme();
     const farmId = useFarmId();
     const [search, setSearch] = useState('');
     const [searching, setSearching] = useState(false);
@@ -168,9 +170,9 @@ export const PesticideManagementScreen: React.FC = () => {
                             disabled={!barcodeInput.trim() || barcodeLoading}
                         >
                             {barcodeLoading ? (
-                                <ActivityIndicator size="small" color="#FFF" />
+                                <ActivityIndicator size="small" color={tc.text.white} />
                             ) : (
-                                <Text variant="caption" color="#FFF" weight="bold">조회</Text>
+                                <Text variant="caption" color={tc.text.white} weight="bold">조회</Text>
                             )}
                         </TouchableOpacity>
                     </View>
@@ -269,23 +271,23 @@ export const PesticideManagementScreen: React.FC = () => {
                 {/* AI 농약 추천 */}
                 <View style={styles.section}>
                     <TouchableOpacity
-                        style={[styles.aiButton, aiLoading && { opacity: 0.6 }]}
+                        style={[styles.aiButton, { backgroundColor: tc.secondary }, aiLoading && { opacity: 0.6 }]}
                         onPress={handleAiRecommend}
                         disabled={aiLoading}
                     >
                         {aiLoading ? (
-                            <ActivityIndicator size="small" color="#FFF" />
+                            <ActivityIndicator size="small" color={tc.text.white} />
                         ) : (
-                            <MaterialCommunityIcons name="robot" size={20} color="#FFF" />
+                            <MaterialCommunityIcons name="robot" size={20} color={tc.text.white} />
                         )}
-                        <Text variant="body2" color="#FFF" weight="bold" style={{ marginLeft: 8 }}>
+                        <Text variant="body2" color={tc.text.white} weight="bold" style={{ marginLeft: 8 }}>
                             AI 맞춤 농약 추천
                         </Text>
                     </TouchableOpacity>
                     {aiAnswer && (
-                        <Card style={styles.aiResultCard}>
-                            <Text variant="caption" color={colors.primary} weight="bold" style={{ marginBottom: 4 }}>AI 추천 결과</Text>
-                            <Text variant="body2" color={colors.text.primary} style={{ lineHeight: 20 }}>{aiAnswer}</Text>
+                        <Card style={[styles.aiResultCard, { backgroundColor: tc.secondaryLight, borderLeftColor: tc.secondary }]}>
+                            <Text variant="caption" color={tc.primary} weight="bold" style={{ marginBottom: 4 }}>AI 추천 결과</Text>
+                            <Text variant="body2" color={tc.text.primary} style={{ lineHeight: 20 }}>{aiAnswer}</Text>
                         </Card>
                     )}
                 </View>
@@ -329,7 +331,7 @@ export const PesticideManagementScreen: React.FC = () => {
                 {/* 빠른 살포 기록 */}
                 <View style={styles.section}>
                     <TouchableOpacity
-                        style={[styles.aiButton, { backgroundColor: '#059669' }]}
+                        style={[styles.aiButton, { backgroundColor: tc.primaryDark }]}
                         onPress={async () => {
                             if (!search.trim() && filtered.length === 0) {
                                 Alert.alert('알림', '먼저 농약을 검색하거나 바코드를 스캔해주세요.');
@@ -359,19 +361,19 @@ export const PesticideManagementScreen: React.FC = () => {
                             }
                         }}
                     >
-                        <MaterialCommunityIcons name="spray" size={20} color="#FFF" />
-                        <Text variant="body2" color="#FFF" weight="bold" style={{ marginLeft: 8 }}>
+                        <MaterialCommunityIcons name="spray" size={20} color={tc.text.white} />
+                        <Text variant="body2" color={tc.text.white} weight="bold" style={{ marginLeft: 8 }}>
                             빠른 살포 기록
                         </Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* PLS Info Card */}
-                <Card style={styles.plsCard}>
-                    <MaterialCommunityIcons name="shield-check" size={32} color={colors.primary} />
+                <Card style={[styles.plsCard, { backgroundColor: tc.primaryLight }]}>
+                    <MaterialCommunityIcons name="shield-check" size={32} color={tc.primary} />
                     <View style={{ marginLeft: spacing.m, flex: 1 }}>
-                        <Text variant="h3" color={colors.primary}>PLS 제도 준수</Text>
-                        <Text variant="caption" color={colors.textSub} style={{ marginTop: 4 }}>
+                        <Text variant="h3" color={tc.primary}>PLS 제도 준수</Text>
+                        <Text variant="caption" color={tc.text.secondary} style={{ marginTop: 4 }}>
                             등록된 농약만 사용하고, 잔류허용기준을 반드시 지켜주세요. 위반 시 과태료가 부과될 수 있습니다.
                         </Text>
                     </View>

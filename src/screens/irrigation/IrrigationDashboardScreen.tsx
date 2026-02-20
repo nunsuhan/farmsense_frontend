@@ -5,6 +5,7 @@ import { irrigationApi, WaterBalanceData, IrrigationRecommendation } from '../..
 import { useNavigation, NavigationProp, RouteProp, useRoute } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigation/types';
 import { tokens } from '../../design-system/tokens';
+import { useTheme } from '../../theme/ThemeProvider';
 import { useFarmInfo } from '../../store/useStore';
 
 // Define the navigation prop type
@@ -14,12 +15,14 @@ type IrrigationDashboardRouteProp = RouteProp<any, any>;
 const IrrigationDashboardScreen = () => {
     const navigation = useNavigation<IrrigationDashboardNavigationProp>();
     const route = useRoute<IrrigationDashboardRouteProp>();
+    const { colors: tc } = useTheme();
     const farmInfo = useFarmInfo();
     const [cwsiData, setCwsiData] = useState<any>(null);
     const [vpdData, setVpdData] = useState<any>(null);
     const [waterBalance, setWaterBalance] = useState<WaterBalanceData | null>(null);
     const [recommendation, setRecommendation] = useState<IrrigationRecommendation | null>(null);
     const [loadingWB, setLoadingWB] = useState(true);
+    const [savingLog, setSavingLog] = useState(false);
 
     useEffect(() => {
         if (route.params?.cwsiResult) setCwsiData(route.params.cwsiResult);
@@ -49,26 +52,26 @@ const IrrigationDashboardScreen = () => {
 
     const getCwsiColor = (stressLevel: string) => {
         switch (stressLevel) {
-            case 'none': return '#10B981';      // 녹색
-            case 'mild': return '#F59E0B';      // 노란색
-            case 'moderate': return '#EF4444';  // 주황색
-            case 'severe': return '#DC2626';    // 빨간색
-            case 'critical': return '#7F1D1D';  // 진한 빨간색
-            default: return '#6B7280';          // 회색
+            case 'none': return tc.success;
+            case 'mild': return tc.warning;
+            case 'moderate': return tc.error;
+            case 'severe': return '#DC2626';
+            case 'critical': return '#7F1D1D';
+            default: return tc.text.disabled;
         }
     };
 
     const CustomProgressBar = ({ progress, color }: { progress: number, color: string }) => (
-        <View style={styles.progressBarContainer}>
+        <View style={[styles.progressBarContainer, { backgroundColor: tc.border }]}>
             <View style={[styles.progressBarFill, { width: `${progress * 100}%`, backgroundColor: color }]} />
         </View>
     );
 
     // Soil moisture: 0–100 %, color-coded red/yellow/green
     const getSoilMoistureColor = (pct: number): string => {
-        if (pct < 30) return '#EF4444';
-        if (pct < 60) return '#F59E0B';
-        return '#10B981';
+        if (pct < 30) return tc.error;
+        if (pct < 60) return tc.warning;
+        return tc.success;
     };
 
     const SoilMoistureGauge = ({ pct }: { pct: number }) => {
@@ -77,10 +80,10 @@ const IrrigationDashboardScreen = () => {
         return (
             <View style={styles.gaugeWrapper}>
                 <View style={styles.gaugeRow}>
-                    <Text style={styles.gaugeLabel}>토양 수분</Text>
+                    <Text style={[styles.gaugeLabel, { color: tc.text.secondary }]}>토양 수분</Text>
                     <Text style={[styles.gaugeValue, { color }]}>{pct.toFixed(0)}%</Text>
                 </View>
-                <View style={styles.gaugeTrack}>
+                <View style={[styles.gaugeTrack, { backgroundColor: tc.border }]}>
                     {/* coloured zones */}
                     <View style={[styles.gaugeZone, { flex: 30, backgroundColor: '#FEE2E2' }]} />
                     <View style={[styles.gaugeZone, { flex: 30, backgroundColor: '#FEF3C7' }]} />
@@ -88,13 +91,13 @@ const IrrigationDashboardScreen = () => {
                     {/* fill overlay */}
                     <View style={[styles.gaugeFill, { width: `${Math.min(pct, 100)}%`, backgroundColor: color }]} />
                     {/* thumb marker */}
-                    <View style={[styles.gaugeThumb, { left: `${Math.min(pct, 100)}%` as any, borderColor: color }]} />
+                    <View style={[styles.gaugeThumb, { left: `${Math.min(pct, 100)}%` as any, borderColor: color, backgroundColor: tc.surface }]} />
                 </View>
                 <View style={styles.gaugeTickRow}>
-                    <Text style={styles.gaugeTick}>0%</Text>
-                    <Text style={styles.gaugeTick}>30%</Text>
-                    <Text style={styles.gaugeTick}>60%</Text>
-                    <Text style={styles.gaugeTick}>100%</Text>
+                    <Text style={[styles.gaugeTick, { color: tc.text.disabled }]}>0%</Text>
+                    <Text style={[styles.gaugeTick, { color: tc.text.disabled }]}>30%</Text>
+                    <Text style={[styles.gaugeTick, { color: tc.text.disabled }]}>60%</Text>
+                    <Text style={[styles.gaugeTick, { color: tc.text.disabled }]}>100%</Text>
                 </View>
                 <View style={[styles.gaugeBadge, { backgroundColor: color + '22', borderColor: color }]}>
                     <Text style={[styles.gaugeBadgeText, { color }]}>{label}</Text>
@@ -107,12 +110,12 @@ const IrrigationDashboardScreen = () => {
     const getUrgencyStyle = (urgency: string): { bg: string; border: string; text: string; label: string } => {
         const u = urgency?.toLowerCase() ?? '';
         if (u.includes('urgent') || u.includes('긴급') || u.includes('즉시')) {
-            return { bg: '#FEE2E2', border: '#EF4444', text: '#DC2626', label: '긴급' };
+            return { bg: '#FEE2E2', border: tc.error, text: '#DC2626', label: '긴급' };
         }
         if (u.includes('moderate') || u.includes('보통') || u.includes('moderate')) {
-            return { bg: '#FEF3C7', border: '#F59E0B', text: '#B45309', label: '보통' };
+            return { bg: '#FEF3C7', border: tc.warning, text: '#B45309', label: '보통' };
         }
-        return { bg: '#D1FAE5', border: '#10B981', text: '#047857', label: '낮음' };
+        return { bg: '#D1FAE5', border: tc.success, text: '#047857', label: '낮음' };
     };
 
     const UrgencyIndicator = ({ urgency }: { urgency: string }) => {
@@ -133,96 +136,96 @@ const IrrigationDashboardScreen = () => {
         return (
             <View style={styles.wbWrapper}>
                 <View style={styles.wbRow}>
-                    <Text style={styles.gaugeLabel}>수분 수지</Text>
-                    <Text style={[styles.gaugeValue, { color: isPositive ? '#3B82F6' : '#EF4444' }]}>
+                    <Text style={[styles.gaugeLabel, { color: tc.text.secondary }]}>수분 수지</Text>
+                    <Text style={[styles.gaugeValue, { color: isPositive ? tc.info : tc.error }]}>
                         {isPositive ? '+' : ''}{balance.toFixed(1)} mm
                     </Text>
                 </View>
-                <View style={styles.wbTrack}>
+                <View style={[styles.wbTrack, { backgroundColor: tc.border }]}>
                     {/* centre zero line */}
-                    <View style={styles.wbZeroLine} />
+                    <View style={[styles.wbZeroLine, { backgroundColor: tc.text.disabled }]} />
                     {/* fill: left side = negative (red), right side = positive (blue) */}
                     {isPositive ? (
                         <View style={[styles.wbFill, {
                             left: '50%',
                             width: `${fillPct}%` as any,
-                            backgroundColor: '#3B82F6',
+                            backgroundColor: tc.info,
                         }]} />
                     ) : (
                         <View style={[styles.wbFill, {
                             right: '50%',
                             width: `${fillPct}%` as any,
-                            backgroundColor: '#EF4444',
+                            backgroundColor: tc.error,
                         }]} />
                     )}
                 </View>
                 <View style={styles.wbTickRow}>
-                    <Text style={styles.gaugeTick}>부족</Text>
-                    <Text style={styles.gaugeTick}>±0</Text>
-                    <Text style={styles.gaugeTick}>충분</Text>
+                    <Text style={[styles.gaugeTick, { color: tc.text.disabled }]}>부족</Text>
+                    <Text style={[styles.gaugeTick, { color: tc.text.disabled }]}>±0</Text>
+                    <Text style={[styles.gaugeTick, { color: tc.text.disabled }]}>충분</Text>
                 </View>
             </View>
         );
     };
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView style={[styles.container, { backgroundColor: tc.background }]}>
             {/* CWSI 상태 카드 */}
-            <View style={[styles.card, styles.cwsiCard]}>
-                <Text style={styles.cardTitle}>💧 수분 스트레스 상태</Text>
+            <View style={[styles.card, { backgroundColor: tc.surface }]}>
+                <Text style={[styles.cardTitle, { color: tc.text.primary }]}>💧 수분 스트레스 상태</Text>
 
                 {cwsiData ? (
                     <View style={styles.cwsiDisplay}>
-                        <Text style={styles.cwsiValue}>CWSI: {cwsiData.cwsi.toFixed(2)}</Text>
+                        <Text style={[styles.cwsiValue, { color: tc.text.primary }]}>CWSI: {cwsiData.cwsi.toFixed(2)}</Text>
                         <CustomProgressBar
                             progress={Math.min(cwsiData.cwsi, 1.0)}
                             color={getCwsiColor(cwsiData.stress_level)}
                         />
-                        <Text style={styles.stressLevel}>{cwsiData.stress_level_korean}</Text>
-                        <Text style={styles.confidence}>신뢰도: {(cwsiData.confidence * 100).toFixed(0)}%</Text>
+                        <Text style={[styles.stressLevel, { color: tc.text.secondary }]}>{cwsiData.stress_level_korean}</Text>
+                        <Text style={[styles.confidence, { color: tc.text.disabled }]}>신뢰도: {(cwsiData.confidence * 100).toFixed(0)}%</Text>
                     </View>
                 ) : (
-                    <Text style={styles.noDataText}>수관 온도 측정이 필요합니다</Text>
+                    <Text style={[styles.noDataText, { color: tc.text.disabled }]}>수관 온도 측정이 필요합니다</Text>
                 )}
             </View>
 
             {/* VPD 상태 카드 */}
-            <View style={[styles.card, styles.vpdCard]}>
-                <Text style={styles.cardTitle}>🌡️ VPD 상태</Text>
+            <View style={[styles.card, { backgroundColor: tc.surface }]}>
+                <Text style={[styles.cardTitle, { color: tc.text.primary }]}>🌡️ VPD 상태</Text>
 
                 {vpdData ? (
                     <View style={styles.vpdDisplay}>
-                        <Text style={styles.vpdValue}>{vpdData.vpd.toFixed(2)} kPa</Text>
+                        <Text style={[styles.vpdValue, { color: tc.text.primary }]}>{vpdData.vpd.toFixed(2)} kPa</Text>
                         <Text style={[styles.vpdStatus, { color: getCwsiColor(vpdData.level) }]}>
                             {vpdData.status_korean}
                         </Text>
                     </View>
                 ) : (
-                    <Text style={styles.noDataText}>센서 데이터 로딩 중...</Text>
+                    <Text style={[styles.noDataText, { color: tc.text.disabled }]}>센서 데이터 로딩 중...</Text>
                 )}
             </View>
 
             {/* 관개 권고 카드 */}
-            <View style={[styles.card, styles.recommendationCard]}>
-                <Text style={styles.cardTitle}>🚰 관개 권고</Text>
-                <Text style={styles.recommendation}>
+            <View style={[styles.card, { backgroundColor: tc.surface }]}>
+                <Text style={[styles.cardTitle, { color: tc.text.primary }]}>🚰 관개 권고</Text>
+                <Text style={[styles.recommendation, { color: tc.text.secondary }]}>
                     {cwsiData?.recommendation || '수관 온도 측정 후 맞춤 권고를 제공합니다'}
                 </Text>
 
                 {cwsiData && (
-                    <View style={styles.detailsContainer}>
-                        <Text style={styles.detailText}>측정 온도: {cwsiData.t_canopy}°C</Text>
-                        <Text style={styles.detailText}>대기 온도: {cwsiData.t_air}°C</Text>
-                        <Text style={styles.detailText}>온도차: {cwsiData.delta_t.toFixed(1)}°C</Text>
+                    <View style={[styles.detailsContainer, { backgroundColor: tc.background }]}>
+                        <Text style={[styles.detailText, { color: tc.text.secondary }]}>측정 온도: {cwsiData.t_canopy}°C</Text>
+                        <Text style={[styles.detailText, { color: tc.text.secondary }]}>대기 온도: {cwsiData.t_air}°C</Text>
+                        <Text style={[styles.detailText, { color: tc.text.secondary }]}>온도차: {cwsiData.delta_t.toFixed(1)}°C</Text>
                     </View>
                 )}
             </View>
 
             {/* 물수지 현황 카드 */}
-            <View style={[styles.card]}>
-                <Text style={styles.cardTitle}>💦 물수지 현황</Text>
+            <View style={[styles.card, { backgroundColor: tc.surface }]}>
+                <Text style={[styles.cardTitle, { color: tc.text.primary }]}>💦 물수지 현황</Text>
                 {loadingWB ? (
-                    <ActivityIndicator size="small" color="#3B82F6" style={{ paddingVertical: 20 }} />
+                    <ActivityIndicator size="small" color={tc.info} style={{ paddingVertical: 20 }} />
                 ) : waterBalance ? (
                     <View>
                         {/* Soil moisture gauge — only shown when soil_moisture is available */}
@@ -233,17 +236,17 @@ const IrrigationDashboardScreen = () => {
                         {/* Water balance visual bar */}
                         <WaterBalanceBar balance={waterBalance.current_balance} />
 
-                        <View style={[styles.detailsContainer, { marginTop: 12 }]}>
-                            <Text style={styles.detailText}>증발산량: {waterBalance.evapotranspiration.toFixed(1)} mm</Text>
-                            <Text style={styles.detailText}>강수량: {waterBalance.rainfall.toFixed(1)} mm</Text>
-                            <Text style={styles.detailText}>관개 합계: {waterBalance.irrigation_total.toFixed(1)} mm</Text>
+                        <View style={[styles.detailsContainer, { backgroundColor: tc.background, marginTop: 12 }]}>
+                            <Text style={[styles.detailText, { color: tc.text.secondary }]}>증발산량: {waterBalance.evapotranspiration.toFixed(1)} mm</Text>
+                            <Text style={[styles.detailText, { color: tc.text.secondary }]}>강수량: {waterBalance.rainfall.toFixed(1)} mm</Text>
+                            <Text style={[styles.detailText, { color: tc.text.secondary }]}>관개 합계: {waterBalance.irrigation_total.toFixed(1)} mm</Text>
                         </View>
-                        <Text style={[styles.recommendation, { marginTop: 8 }]}>
+                        <Text style={[styles.recommendation, { color: tc.text.secondary, marginTop: 8 }]}>
                             {waterBalance.recommendation}
                         </Text>
                     </View>
                 ) : (
-                    <Text style={styles.noDataText}>물수지 데이터를 불러올 수 없습니다</Text>
+                    <Text style={[styles.noDataText, { color: tc.text.disabled }]}>물수지 데이터를 불러올 수 없습니다</Text>
                 )}
             </View>
 
@@ -251,16 +254,17 @@ const IrrigationDashboardScreen = () => {
             {recommendation && (
                 <View style={[
                     styles.card,
+                    { backgroundColor: tc.surface },
                     recommendation.should_irrigate
-                        ? { borderLeftWidth: 4, borderLeftColor: '#EF4444' }
-                        : { borderLeftWidth: 4, borderLeftColor: '#10B981' },
+                        ? { borderLeftWidth: 4, borderLeftColor: tc.error }
+                        : { borderLeftWidth: 4, borderLeftColor: tc.success },
                 ]}>
-                    <Text style={styles.cardTitle}>🚿 관개 권고 (자동)</Text>
+                    <Text style={[styles.cardTitle, { color: tc.text.primary }]}>🚿 관개 권고 (자동)</Text>
 
                     {/* Urgency indicator row */}
                     <View style={styles.recHeaderRow}>
                         <Text style={[styles.stressLevel, {
-                            color: recommendation.should_irrigate ? '#EF4444' : '#10B981',
+                            color: recommendation.should_irrigate ? tc.error : tc.success,
                             flex: 1,
                         }]}>
                             {recommendation.should_irrigate ? '💧 관개 필요' : '✅ 관개 불필요'}
@@ -272,27 +276,29 @@ const IrrigationDashboardScreen = () => {
 
                     {recommendation.amount_mm && (
                         <View style={styles.amountRow}>
-                            <View style={styles.amountBadge}>
-                                <Text style={styles.amountLabel}>권장량</Text>
-                                <Text style={styles.amountValue}>{recommendation.amount_mm} mm</Text>
+                            <View style={[styles.amountBadge, { backgroundColor: tc.info + '15', borderColor: tc.info + '40' }]}>
+                                <Text style={[styles.amountLabel, { color: tc.text.secondary }]}>권장량</Text>
+                                <Text style={[styles.amountValue, { color: tc.info }]}>{recommendation.amount_mm} mm</Text>
                             </View>
-                            <View style={styles.amountBadge}>
-                                <Text style={styles.amountLabel}>관개 시간</Text>
-                                <Text style={styles.amountValue}>{recommendation.duration_min} 분</Text>
+                            <View style={[styles.amountBadge, { backgroundColor: tc.info + '15', borderColor: tc.info + '40' }]}>
+                                <Text style={[styles.amountLabel, { color: tc.text.secondary }]}>관개 시간</Text>
+                                <Text style={[styles.amountValue, { color: tc.info }]}>{recommendation.duration_min} 분</Text>
                             </View>
                         </View>
                     )}
-                    <Text style={[styles.recommendation, { marginTop: 4 }]}>{recommendation.reason}</Text>
+                    <Text style={[styles.recommendation, { color: tc.text.secondary, marginTop: 4 }]}>{recommendation.reason}</Text>
                 </View>
             )}
 
             {/* 관개 기록 저장 버튼 */}
             {recommendation?.should_irrigate && recommendation.amount_mm && (
                 <TouchableOpacity
-                    style={[styles.card, { backgroundColor: '#EFF6FF', borderWidth: 1, borderColor: '#3B82F6', alignItems: 'center', paddingVertical: 14 }]}
+                    style={[styles.card, { backgroundColor: tc.info + '15', borderWidth: 1, borderColor: tc.info, alignItems: 'center', paddingVertical: 14, opacity: savingLog ? 0.6 : 1 }]}
+                    disabled={savingLog}
                     onPress={async () => {
                         const farmId = Number(farmInfo?.id);
                         if (!farmId || isNaN(farmId)) { Alert.alert('알림', '농장 정보를 먼저 설정해주세요.'); return; }
+                        setSavingLog(true);
                         try {
                             await irrigationApi.saveIrrigationLog(farmId, {
                                 date: new Date().toISOString().slice(0, 10),
@@ -304,24 +310,26 @@ const IrrigationDashboardScreen = () => {
                             Alert.alert('저장 완료', '관개 기록이 저장되었습니다.');
                         } catch (e: any) {
                             Alert.alert('오류', '관개 기록 저장에 실패했습니다.');
+                        } finally {
+                            setSavingLog(false);
                         }
                     }}
                 >
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: '#1D4ED8' }}>💾 관개 기록 저장</Text>
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: tc.info }}>{savingLog ? '저장 중...' : '💾 관개 기록 저장'}</Text>
                 </TouchableOpacity>
             )}
 
             {/* 측정 버튼들 */}
             <View style={styles.buttonContainer}>
                 <TouchableOpacity
-                    style={[styles.button, styles.measureButton]}
+                    style={[styles.button, { backgroundColor: tc.info }]}
                     onPress={() => (navigation as any).navigate('ThermalMeasurement')}
                 >
-                    <Text style={styles.buttonText}>📱 수관 온도 측정</Text>
+                    <Text style={[styles.buttonText, { color: tc.text.white }]}>📱 수관 온도 측정</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[styles.button, styles.historyButton]}
+                    style={[styles.button, { backgroundColor: tc.text.secondary }]}
                     onPress={async () => {
                         const farmId = Number(farmInfo?.id);
                         if (!farmId || isNaN(farmId)) { Alert.alert('알림', '농장 정보를 먼저 설정해주세요.'); return; }
@@ -337,7 +345,7 @@ const IrrigationDashboardScreen = () => {
                         }
                     }}
                 >
-                    <Text style={styles.buttonText}>📊 측정 이력</Text>
+                    <Text style={[styles.buttonText, { color: tc.text.white }]}>📊 측정 이력</Text>
                 </TouchableOpacity>
             </View>
         </ScrollView>
@@ -347,11 +355,9 @@ const IrrigationDashboardScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F9FAFB',
         padding: 16,
     },
     card: {
-        backgroundColor: '#FFFFFF',
         borderRadius: 12,
         padding: 16,
         marginBottom: 16,
@@ -361,13 +367,9 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 3,
     },
-    cwsiCard: {},
-    vpdCard: {},
-    recommendationCard: {},
     cardTitle: {
         fontSize: tokens.fontSize.md,
         fontWeight: 'bold',
-        color: '#1F2937',
         marginBottom: 12,
     },
     cwsiDisplay: {
@@ -376,13 +378,11 @@ const styles = StyleSheet.create({
     cwsiValue: {
         fontSize: tokens.fontSize.xxl,
         fontWeight: 'bold',
-        color: '#1F2937',
         marginBottom: 8,
     },
     progressBarContainer: {
         width: '100%',
         height: 8,
-        backgroundColor: '#E5E7EB',
         borderRadius: 4,
         marginBottom: 8,
         overflow: 'hidden',
@@ -395,11 +395,9 @@ const styles = StyleSheet.create({
         fontSize: tokens.fontSize.sm,
         fontWeight: '600',
         marginBottom: 4,
-        color: '#374151',
     },
     confidence: {
         fontSize: tokens.fontSize.xs,
-        color: '#6B7280',
     },
     vpdDisplay: {
         alignItems: 'center',
@@ -407,7 +405,6 @@ const styles = StyleSheet.create({
     vpdValue: {
         fontSize: tokens.fontSize.lg,
         fontWeight: 'bold',
-        color: '#1F2937',
         marginBottom: 4,
     },
     vpdStatus: {
@@ -416,23 +413,19 @@ const styles = StyleSheet.create({
     },
     recommendation: {
         fontSize: tokens.fontSize.sm,
-        color: '#374151',
         lineHeight: 24,
         marginBottom: 12,
     },
     detailsContainer: {
-        backgroundColor: '#F3F4F6',
         borderRadius: 8,
         padding: 12,
     },
     detailText: {
         fontSize: tokens.fontSize.xs,
-        color: '#6B7280',
         marginBottom: 4,
     },
     noDataText: {
         fontSize: tokens.fontSize.xs,
-        color: '#9CA3AF',
         fontStyle: 'italic',
         textAlign: 'center',
         paddingVertical: 20,
@@ -449,14 +442,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 4,
         alignItems: 'center',
     },
-    measureButton: {
-        backgroundColor: '#3B82F6',
-    },
-    historyButton: {
-        backgroundColor: '#6B7280',
-    },
     buttonText: {
-        color: '#FFFFFF',
         fontSize: tokens.fontSize.sm,
         fontWeight: '600',
     },
@@ -473,7 +459,6 @@ const styles = StyleSheet.create({
     },
     gaugeLabel: {
         fontSize: tokens.fontSize.xs,
-        color: '#6B7280',
         fontWeight: '600',
     },
     gaugeValue: {
@@ -485,7 +470,6 @@ const styles = StyleSheet.create({
         borderRadius: 7,
         overflow: 'hidden',
         flexDirection: 'row',
-        backgroundColor: '#E5E7EB',
         position: 'relative',
     },
     gaugeZone: {
@@ -504,7 +488,6 @@ const styles = StyleSheet.create({
         width: 20,
         height: 20,
         borderRadius: 10,
-        backgroundColor: '#FFFFFF',
         borderWidth: 2.5,
         marginLeft: -10,
         shadowColor: '#000',
@@ -520,7 +503,6 @@ const styles = StyleSheet.create({
     },
     gaugeTick: {
         fontSize: 11,
-        color: '#9CA3AF',
     },
     gaugeBadge: {
         alignSelf: 'flex-start',
@@ -548,7 +530,6 @@ const styles = StyleSheet.create({
     wbTrack: {
         height: 14,
         borderRadius: 7,
-        backgroundColor: '#E5E7EB',
         overflow: 'hidden',
         position: 'relative',
         justifyContent: 'center',
@@ -559,7 +540,6 @@ const styles = StyleSheet.create({
         top: 0,
         bottom: 0,
         width: 2,
-        backgroundColor: '#9CA3AF',
         zIndex: 2,
     },
     wbFill: {
@@ -605,23 +585,19 @@ const styles = StyleSheet.create({
     },
     amountBadge: {
         flex: 1,
-        backgroundColor: '#EFF6FF',
         borderRadius: 8,
         paddingVertical: 8,
         paddingHorizontal: 12,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#BFDBFE',
     },
     amountLabel: {
         fontSize: 11,
-        color: '#6B7280',
         marginBottom: 2,
     },
     amountValue: {
         fontSize: tokens.fontSize.sm,
         fontWeight: '700',
-        color: '#1D4ED8',
     },
 });
 

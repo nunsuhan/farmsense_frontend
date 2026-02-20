@@ -5,12 +5,14 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigation/types';
 import { Ionicons } from '@expo/vector-icons';
 import { tokens } from '../../design-system/tokens';
+import { useTheme } from '../../theme/ThemeProvider';
 import { useFarmInfo } from '../../store/useStore';
 
 type ThermalMeasurementNavigationProp = NavigationProp<any>;
 
 const ThermalMeasurementScreen = () => {
     const navigation = useNavigation<ThermalMeasurementNavigationProp>();
+    const { colors: tc } = useTheme();
     const farmInfo = useFarmInfo();
     const [canopyTemp, setCanopyTemp] = useState('');
     const [growthStage, setGrowthStage] = useState('veraison');
@@ -72,6 +74,7 @@ const ThermalMeasurementScreen = () => {
                     stress_level: cwsiResponse.stress_level || 'none',
                     recommendation: cwsiResponse.recommendation || '',
                     growth_stage: growthStage,
+                    uploaded: false,
                 }]).catch(() => { /* 저장 실패해도 화면 이동은 진행 */ });
             }
 
@@ -92,26 +95,26 @@ const ThermalMeasurementScreen = () => {
         const hour = now.getHours();
 
         if (hour >= 12 && hour <= 14) {
-            return { suitable: true, message: '🎯 최적 측정 시간입니다!' };
+            return { suitable: true, message: '최적 측정 시간입니다!' };
         } else if (hour >= 11 && hour <= 15) {
-            return { suitable: true, message: '⚡ 측정 가능한 시간입니다' };
+            return { suitable: true, message: '측정 가능한 시간입니다' };
         } else {
-            return { suitable: false, message: '⚠️ 정오 시간대(12-14시) 권장' };
+            return { suitable: false, message: '정오 시간대(12-14시) 권장' };
         }
     };
 
     const timeStatus = getCurrentTime();
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView style={[styles.container, { backgroundColor: tc.background }]}>
             {/* 측정 가이드 카드 */}
-            <View style={styles.guideCard}>
-                <Text style={styles.guideTitle}>📋 측정 가이드</Text>
+            <View style={[styles.guideCard, { backgroundColor: tc.info + '15', borderLeftColor: tc.info }]}>
+                <Text style={[styles.guideTitle, { color: tc.info }]}>측정 가이드</Text>
 
-                <View style={styles.timeStatus}>
+                <View style={[styles.timeStatus, { backgroundColor: tc.surface }]}>
                     <Text style={[
                         styles.timeText,
-                        { color: timeStatus.suitable ? '#10B981' : '#EF4444' }
+                        { color: timeStatus.suitable ? tc.success : tc.error }
                     ]}>
                         {timeStatus.message}
                     </Text>
@@ -120,52 +123,53 @@ const ThermalMeasurementScreen = () => {
                 <View style={styles.guideList}>
                     {guideData?.steps?.length > 0
                         ? guideData.steps.map((step: string, i: number) => (
-                            <Text key={i} style={styles.guideText}>• {step}</Text>
+                            <Text key={i} style={[styles.guideText, { color: tc.text.primary }]}>• {step}</Text>
                           ))
                         : <>
-                            <Text style={styles.guideText}>• 정오 시간대 (12:00-14:00) 최적</Text>
-                            <Text style={styles.guideText}>• 그늘진 건강한 잎 온도 측정</Text>
-                            <Text style={styles.guideText}>• 열화상카메라 또는 적외선 온도계 사용</Text>
-                            <Text style={styles.guideText}>• 직사광선이 닿지 않는 잎 선택</Text>
-                            <Text style={styles.guideText}>• 5-10개 잎 평균값 권장</Text>
+                            <Text style={[styles.guideText, { color: tc.text.primary }]}>• 정오 시간대 (12:00-14:00) 최적</Text>
+                            <Text style={[styles.guideText, { color: tc.text.primary }]}>• 그늘진 건강한 잎 온도 측정</Text>
+                            <Text style={[styles.guideText, { color: tc.text.primary }]}>• 열화상카메라 또는 적외선 온도계 사용</Text>
+                            <Text style={[styles.guideText, { color: tc.text.primary }]}>• 직사광선이 닿지 않는 잎 선택</Text>
+                            <Text style={[styles.guideText, { color: tc.text.primary }]}>• 5-10개 잎 평균값 권장</Text>
                           </>
                     }
                 </View>
             </View>
 
             {/* 현재 환경 상태 */}
-            <View style={styles.environmentCard}>
-                <Text style={styles.cardTitle}>🌡️ 현재 환경</Text>
+            <View style={[styles.environmentCard, { backgroundColor: tc.surface }]}>
+                <Text style={[styles.cardTitle, { color: tc.text.primary }]}>현재 환경</Text>
                 <View style={styles.environmentData}>
-                    <Text style={styles.environmentText}>대기 온도: {sensorData.temperature}°C</Text>
-                    <Text style={styles.environmentText}>습도: {sensorData.humidity}%</Text>
+                    <Text style={[styles.environmentText, { color: tc.text.secondary }]}>대기 온도: {sensorData.temperature}°C</Text>
+                    <Text style={[styles.environmentText, { color: tc.text.secondary }]}>습도: {sensorData.humidity}%</Text>
                 </View>
             </View>
 
             {/* 입력 폼 */}
-            <View style={styles.inputCard}>
-                <Text style={styles.cardTitle}>📝 측정값 입력</Text>
+            <View style={[styles.inputCard, { backgroundColor: tc.surface }]}>
+                <Text style={[styles.cardTitle, { color: tc.text.primary }]}>측정값 입력</Text>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>수관(잎) 온도 (°C) *</Text>
+                    <Text style={[styles.label, { color: tc.text.secondary }]}>수관(잎) 온도 (°C) *</Text>
                     <TextInput
-                        style={styles.temperatureInput}
+                        style={[styles.temperatureInput, { borderColor: tc.border, backgroundColor: tc.surface, color: tc.text.primary }]}
                         value={canopyTemp}
                         onChangeText={setCanopyTemp}
                         placeholder="예: 28.5"
+                        placeholderTextColor={tc.text.disabled}
                         keyboardType="decimal-pad"
                         maxLength={5}
                     />
                 </View>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>생육 단계 *</Text>
+                    <Text style={[styles.label, { color: tc.text.secondary }]}>생육 단계 *</Text>
                     <TouchableOpacity
-                        style={styles.pickerSelector}
+                        style={[styles.pickerSelector, { borderColor: tc.border, backgroundColor: tc.surface }]}
                         onPress={() => setModalVisible(true)}
                     >
-                        <Text style={styles.pickerText}>{getGrowthStageLabel(growthStage)}</Text>
-                        <Ionicons name="chevron-down" size={20} color="#6B7280" />
+                        <Text style={[styles.pickerText, { color: tc.text.primary }]}>{getGrowthStageLabel(growthStage)}</Text>
+                        <Ionicons name="chevron-down" size={20} color={tc.text.secondary} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -174,20 +178,21 @@ const ThermalMeasurementScreen = () => {
             <TouchableOpacity
                 style={[
                     styles.calculateButton,
+                    { backgroundColor: tc.info },
                     (!canopyTemp || loading) && styles.calculateButtonDisabled
                 ]}
                 onPress={calculateCWSI}
                 disabled={!canopyTemp || loading}
             >
-                <Text style={styles.calculateButtonText}>
-                    {loading ? '계산 중...' : '💧 CWSI 계산하기'}
+                <Text style={[styles.calculateButtonText, { color: tc.text.white }]}>
+                    {loading ? '계산 중...' : 'CWSI 계산하기'}
                 </Text>
             </TouchableOpacity>
 
             {/* 도움말 */}
-            <View style={styles.helpCard}>
-                <Text style={styles.helpTitle}>💡 측정 팁</Text>
-                <Text style={styles.helpText}>
+            <View style={[styles.helpCard, { backgroundColor: tc.background }]}>
+                <Text style={[styles.helpTitle, { color: tc.text.secondary }]}>측정 팁</Text>
+                <Text style={[styles.helpText, { color: tc.text.disabled }]}>
                     열화상 카메라가 없다면 적외선 온도계(IR 온도계)를 사용하세요.
                     온라인에서 2-3만원에 구입할 수 있으며, 잎에서 10-15cm 떨어진 거리에서 측정하시면 됩니다.
                 </Text>
@@ -196,14 +201,14 @@ const ThermalMeasurementScreen = () => {
             {/* Growth Stage Picker Modal */}
             <Modal visible={modalVisible} transparent animationType="slide">
                 <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>생육 단계 선택</Text>
+                    <View style={[styles.modalContent, { backgroundColor: tc.surface }]}>
+                        <Text style={[styles.modalTitle, { color: tc.text.primary }]}>생육 단계 선택</Text>
                         <FlatList
                             data={growthStages}
                             keyExtractor={(item) => item.value}
                             renderItem={({ item }) => (
                                 <TouchableOpacity
-                                    style={styles.modalItem}
+                                    style={[styles.modalItem, { borderBottomColor: tc.border }]}
                                     onPress={() => {
                                         setGrowthStage(item.value);
                                         setModalVisible(false);
@@ -211,17 +216,18 @@ const ThermalMeasurementScreen = () => {
                                 >
                                     <Text style={[
                                         styles.modalItemText,
-                                        growthStage === item.value && { color: '#3B82F6', fontWeight: 'bold' }
+                                        { color: tc.text.secondary },
+                                        growthStage === item.value && { color: tc.info, fontWeight: 'bold' }
                                     ]}>{item.label}</Text>
-                                    {growthStage === item.value && <Ionicons name="checkmark" size={20} color="#3B82F6" />}
+                                    {growthStage === item.value && <Ionicons name="checkmark" size={20} color={tc.info} />}
                                 </TouchableOpacity>
                             )}
                         />
                         <TouchableOpacity
-                            style={styles.modalCloseButton}
+                            style={[styles.modalCloseButton, { backgroundColor: tc.background }]}
                             onPress={() => setModalVisible(false)}
                         >
-                            <Text style={styles.modalCloseText}>닫기</Text>
+                            <Text style={[styles.modalCloseText, { color: tc.text.secondary }]}>닫기</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -234,25 +240,20 @@ const ThermalMeasurementScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F9FAFB',
         padding: 16,
     },
     guideCard: {
-        backgroundColor: '#EBF8FF',
         borderRadius: 12,
         padding: 16,
         marginBottom: 16,
         borderLeftWidth: 4,
-        borderLeftColor: '#3B82F6',
     },
     guideTitle: {
         fontSize: tokens.fontSize.md,
         fontWeight: 'bold',
-        color: '#1E40AF',
         marginBottom: 12,
     },
     timeStatus: {
-        backgroundColor: '#FFFFFF',
         borderRadius: 8,
         padding: 12,
         marginBottom: 12,
@@ -267,12 +268,10 @@ const styles = StyleSheet.create({
     },
     guideText: {
         fontSize: tokens.fontSize.xs,
-        color: '#1F2937',
         marginBottom: 6,
         lineHeight: 20,
     },
     environmentCard: {
-        backgroundColor: '#FFFFFF',
         borderRadius: 12,
         padding: 16,
         marginBottom: 16,
@@ -280,7 +279,6 @@ const styles = StyleSheet.create({
     cardTitle: {
         fontSize: tokens.fontSize.md,
         fontWeight: 'bold',
-        color: '#1F2937',
         marginBottom: 12,
     },
     environmentData: {
@@ -289,11 +287,9 @@ const styles = StyleSheet.create({
     },
     environmentText: {
         fontSize: tokens.fontSize.sm,
-        color: '#374151',
         fontWeight: '500',
     },
     inputCard: {
-        backgroundColor: '#FFFFFF',
         borderRadius: 12,
         padding: 16,
         marginBottom: 16,
@@ -304,72 +300,61 @@ const styles = StyleSheet.create({
     label: {
         fontSize: tokens.fontSize.sm,
         fontWeight: '600',
-        color: '#374151',
         marginBottom: 8,
     },
     temperatureInput: {
         borderWidth: 1,
-        borderColor: '#D1D5DB',
         borderRadius: 8,
         paddingHorizontal: 16,
         paddingVertical: 12,
         fontSize: tokens.fontSize.md,
-        backgroundColor: '#FFFFFF',
     },
     pickerSelector: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#D1D5DB',
         borderRadius: 8,
         paddingHorizontal: 16,
         paddingVertical: 14,
-        backgroundColor: '#FFFFFF',
     },
     pickerText: {
         fontSize: tokens.fontSize.sm,
-        color: '#111827',
     },
     calculateButton: {
-        backgroundColor: '#3B82F6',
         borderRadius: 8,
         paddingVertical: 16,
         alignItems: 'center',
         marginBottom: 16,
     },
     calculateButtonDisabled: {
-        backgroundColor: '#9CA3AF',
+        opacity: 0.5,
     },
     calculateButtonText: {
-        color: '#FFFFFF',
         fontSize: tokens.fontSize.md,
         fontWeight: 'bold',
     },
     helpCard: {
-        backgroundColor: '#F3F4F6',
         borderRadius: 12,
         padding: 16,
     },
     helpTitle: {
         fontSize: tokens.fontSize.sm,
         fontWeight: 'bold',
-        color: '#374151',
         marginBottom: 8,
     },
     helpText: {
         fontSize: tokens.fontSize.xs,
-        color: '#6B7280',
         lineHeight: 20,
     },
     // Modal Styles
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-    modalContent: { width: '80%', backgroundColor: '#fff', borderRadius: 16, padding: 20, maxHeight: '60%' },
+    modalContent: { width: '80%', borderRadius: 16, padding: 20, maxHeight: '60%' },
     modalTitle: { fontSize: tokens.fontSize.md, fontWeight: 'bold', marginBottom: 16, textAlign: 'center' },
-    modalItem: { paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F3F4F6', flexDirection: 'row', justifyContent: 'space-between' },
-    modalItemText: { fontSize: tokens.fontSize.sm, color: '#374151' },
-    modalCloseButton: { marginTop: 16, padding: 12, backgroundColor: '#F3F4F6', borderRadius: 8, alignItems: 'center' },
-    modalCloseText: { color: '#374151', fontWeight: '600' },
+    modalItem: { paddingVertical: 16, borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between' },
+    modalItemText: { fontSize: tokens.fontSize.sm },
+    modalCloseButton: { marginTop: 16, padding: 12, borderRadius: 8, alignItems: 'center' },
+    modalCloseText: { fontWeight: '600' },
 });
 
 export default ThermalMeasurementScreen;
