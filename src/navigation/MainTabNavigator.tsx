@@ -1,38 +1,59 @@
+/**
+ * v2.2 MainTabNavigator - 6탭 구조
+ * 홈 | AI상담 | 진단 | 영농일지 | 내농장 | 더보기
+ */
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { HomeStackNavigator } from './HomeStackNavigator';
-import { FarmingLogStackNavigator } from './FarmingLogStackNavigator';
-import { CommunityStackNavigator } from './CommunityStackNavigator';
-import { SettingsStackNavigator } from './SettingsStackNavigator';
-import BottomTabBar from '../components/common/BottomTabBar';
+import { MainTabParamList } from './types';
 import { colors } from '../theme/colors';
 
-// Placeholder screens for now
-const PlaceholderScreen = (name: string) => () => (
-    <React.Fragment></React.Fragment> // Empty for now
-);
+import { HomeStackNavigator } from './HomeStackNavigator';
+import { FarmingLogStackNavigator } from './FarmingLogStackNavigator';
+import { SettingsStackNavigator } from './SettingsStackNavigator';
+import DiagnosisHubScreen from '../screens/diagnosis/DiagnosisHubScreen';
+import ConsultScreen from '../screens/consult/ConsultScreen';
+import MoreScreen from '../screens/more/MoreScreen';
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
-import FarmDoctorScreen from '../screens/farmDoctor/FarmDoctorScreen';
-
-// ... (imports)
+const TAB_ICONS: Record<string, { focused: string; unfocused: string }> = {
+  HomeTab: { focused: 'home', unfocused: 'home-outline' },
+  ConsultTab: { focused: 'chatbubble', unfocused: 'chatbubble-outline' },
+  DiagnosisTab: { focused: 'camera', unfocused: 'camera-outline' },
+  LogTab: { focused: 'create', unfocused: 'create-outline' },
+  MyFarmTab: { focused: 'leaf', unfocused: 'leaf-outline' },
+  MoreTab: { focused: 'ellipsis-horizontal', unfocused: 'ellipsis-horizontal-outline' },
+};
 
 export const MainTabNavigator = () => {
-    return (
-        <Tab.Navigator
-            tabBar={(props) => <BottomTabBar {...props} />}
-            screenOptions={{
-                headerShown: false,
-                tabBarActiveTintColor: colors.primary,
-                tabBarInactiveTintColor: 'gray',
-            }}
-        >
-            <Tab.Screen name="HomeTab" component={HomeStackNavigator} options={{ title: '홈' }} />
-            <Tab.Screen name="FarmingLog" component={FarmingLogStackNavigator} options={{ title: '영농일지' }} />
-            <Tab.Screen name="Community" component={CommunityStackNavigator} options={{ title: '커뮤니티' }} />
-            <Tab.Screen name="MyFarm" component={SettingsStackNavigator} options={{ title: '내 농장' }} />
-        </Tab.Navigator>
-    );
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#E5E7EB',
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 6,
+        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarIcon: ({ focused, color, size }) => {
+          const icons = TAB_ICONS[route.name];
+          const iconName = focused ? icons.focused : icons.unfocused;
+          return <Ionicons name={iconName as any} size={22} color={color} />;
+        },
+      })}
+    >
+      <Tab.Screen name="HomeTab" component={HomeStackNavigator} options={{ title: '홈' }} />
+      <Tab.Screen name="ConsultTab" component={ConsultScreen} options={{ title: 'AI상담' }} />
+      <Tab.Screen name="DiagnosisTab" component={DiagnosisHubScreen} options={{ title: '진단' }} />
+      <Tab.Screen name="LogTab" component={FarmingLogStackNavigator} options={{ title: '영농일지' }} />
+      <Tab.Screen name="MyFarmTab" component={SettingsStackNavigator} options={{ title: '내농장' }} />
+      <Tab.Screen name="MoreTab" component={MoreScreen} options={{ title: '더보기' }} />
+    </Tab.Navigator>
+  );
 };
