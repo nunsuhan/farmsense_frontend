@@ -23,6 +23,8 @@ import TermsScreen from '../screens/settings/TermsScreen';
 import YearlyReportScreen from '../screens/YearlyReportScreen';
 import FertilizerPrescriptionScreen from '../screens/settings/FertilizerPrescriptionScreen';
 
+import SmartGreenhouseScreen from '../screens/myfarm/SmartGreenhouseScreen';
+import SensorDashboardScreen from '../screens/myfarm/SensorDashboardScreen';
 import { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -51,6 +53,8 @@ export const SettingsStackNavigator = () => {
             <Stack.Screen name="Terms" component={TermsScreen} />
             <Stack.Screen name="YearlyReport" component={YearlyReportScreen} />
             <Stack.Screen name="FertilizerPrescription" component={FertilizerPrescriptionScreen} />
+            <Stack.Screen name="SmartGreenhouse" component={SmartGreenhouseScreen} />
+            <Stack.Screen name="SensorDashboard" component={SensorDashboardScreen} />
         </Stack.Navigator>
     );
 };
