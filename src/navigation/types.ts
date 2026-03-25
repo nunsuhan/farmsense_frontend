@@ -33,7 +33,6 @@ export type MainTabParamList = {
 export type HomeStackParamList = {
   Home: undefined;
   TodayReport: undefined;
-  ReportHub: undefined;
   ReportList: undefined;
   IrrigationDetail: undefined;
   DiagnosisDetail: undefined;
@@ -76,7 +75,6 @@ export type DiagnosisStackParamList = {
   GrowthRecordWrite: { hasIssue?: boolean };
   CanopyGuide: undefined;
   CanopyCamera: undefined;
-  SmartScanner: undefined;
 };
 
 // 탭 4: 영농일지
@@ -91,7 +89,6 @@ export type MyFarmStackParamList = {
   MyFarmHub: undefined;
   UnifiedFarmSettings: undefined;
   SensorManage: undefined;
-  SensorDashboard: undefined;
   SensorRegistration: undefined;
   ExternalSensor: undefined;
   FarmMap: undefined;
@@ -107,8 +104,6 @@ export type MyFarmStackParamList = {
   TrainingForm: undefined;
   ExportDashboard: undefined;
   Sealing: undefined;
-  SmartGreenhouse: undefined;
-  IrrigationDashboard: { sectorId?: string };
 };
 
 // 탭 6: 더보기

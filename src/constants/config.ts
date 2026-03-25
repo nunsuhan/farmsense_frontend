@@ -7,11 +7,11 @@ const IS_DEV = process.env.NODE_ENV === 'development' ||
 
 export const API_CONFIG = {
   // 메인 Django API (인증, 커뮤니티, 센서, 날씨 등)
-  BASE_URL: 'https://api.farmsense.kr/api',
+  BASE_URL: IS_DEV ? 'http://127.0.0.1:8080/api' : 'https://farmsense.kr/api',
   // RAG 서버 (질의응답)
-  RAG_URL: 'https://api.farmsense.kr/api',
+  RAG_URL: IS_DEV ? 'http://127.0.0.1:8080/api' : 'https://farmsense.kr/api',
   // 병해 진단 서버 (이미지 분석)
-  DIAGNOSIS_URL: 'https://api.farmsense.kr/api',
+  DIAGNOSIS_URL: IS_DEV ? 'http://127.0.0.1:8080/api' : 'https://farmsense.kr/api',
   TIMEOUT: 30000,
   ENDPOINTS: {
     DIAGNOSIS: {
@@ -37,12 +37,6 @@ export const API_CONFIG = {
       ASK: '/rag/ask/',
       SMART: '/rag/smart/',
       ENHANCED: '/rag/enhanced/',
-      REFINE: '/rag/refine/',
-      SMART_ANSWER: '/rag/smart-answer/',
-      QUICK: '/rag/quick/',
-      CHAT: '/rag/chat/',
-      STATUS: '/rag/status/',
-      ESTIMATE_ROUTE: '/research/estimate-route/',
     },
     NONGSARO: {
       VARIETIES_GRAPE: '/nongsaro/varieties/grape/',
@@ -98,19 +92,6 @@ export const API_CONFIG = {
       SEAL_VERIFY: (hash: string) => `/trace/gap/seal/${hash}/`,
       EXPORT_PREP: (farmId: number) => `/trace/gap/export-prep/${farmId}/`,
     },
-    THERMAL: {
-      REGISTER: '/sensors/mlx90640/register/',
-      LIST: '/sensors/mlx90640/list/',
-      FRAME: '/sensors/mlx90640/frame/',
-      MONITOR: '/sensors/mlx90640/monitor/',
-      COMPARE: '/sensors/mlx90640/compare/',
-      TREND: (sensorId: string) => `/sensors/mlx90640/${sensorId}/trend/`,
-      HISTORY: (sensorId: string) => `/sensors/mlx90640/${sensorId}/history/`,
-    },
-    SCRAPBOOK: {
-      BASE: '/rag/scrapbook/',
-      DETAIL: (id: number) => `/rag/scrapbook/${id}/`,
-    },
     TRACE: {
       RECORD: '/trace/record/',
       RECORD_DETAIL: (hash: string) => `/trace/record/${hash}/`,
@@ -132,5 +113,5 @@ export const IMAGE_CONFIG = {
 export const APP_CONFIG = {
   APP_NAME: 'FarmSense',
   VERSION: '1.0.0',
-  SUPPORT_EMAIL: 'contact@farmsense.kr',
+  SUPPORT_EMAIL: 'support@farmsense.com',
 };

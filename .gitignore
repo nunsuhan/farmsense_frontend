@@ -39,6 +39,3 @@ yarn-error.*
 # generated native folders
 /ios
 # /android
-
-# large debug files
-android/manifest_debug.txt
