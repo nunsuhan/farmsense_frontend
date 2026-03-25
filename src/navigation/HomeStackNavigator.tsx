@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from '../screens/HomeScreen';
+import HomeRouter from '../screens/home/HomeRouter';
 import { PesticideManagementScreen } from '../screens/pesticide/PesticideManagementScreen';
 import FarmMapScreen from '../screens/FarmMapScreen';
 import FarmMapAdvancedScreen from '../screens/FarmMapAdvancedScreen';
@@ -23,7 +23,7 @@ const HomeStack = createNativeStackNavigator<RootStackParamList>();
 export const HomeStackNavigator = () => {
     return (
         <HomeStack.Navigator screenOptions={{ headerShown: false }} id={undefined}>
-            <HomeStack.Screen name="Home" component={HomeScreen} />
+            <HomeStack.Screen name="Home" component={HomeRouter} />
             <HomeStack.Screen name="Benchmark" component={BenchmarkScreen} />
             <HomeStack.Screen name="PesticideManagement" component={PesticideManagementScreen} />
             <HomeStack.Screen name="FarmMap" component={FarmMapScreen} />
