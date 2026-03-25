@@ -10,16 +10,13 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import PageLayout from '../../components/common/PageLayout';
-import HelpCard from '../../components/common/HelpCard';
 import { colors, shadows } from '../../theme/colors';
-import { useTheme } from '../../theme/ThemeProvider';
 
 const DiagnosisHubScreen = () => {
   const navigation = useNavigation<any>();
-  const { colors: tc } = useTheme();
 
   const CARDS = [
     {
@@ -29,7 +26,7 @@ const DiagnosisHubScreen = () => {
       icon: 'camera',
       iconColor: '#EF4444',
       bgColor: '#FEF2F2',
-      screen: 'DiagnosisCamera',
+      screen: 'Diagnosis',
     },
     {
       id: 'growth',
@@ -38,7 +35,7 @@ const DiagnosisHubScreen = () => {
       icon: 'trending-up',
       iconColor: '#10B981',
       bgColor: '#ECFDF5',
-      screen: 'GrowthRecord',
+      screen: 'GrowthDiary',
     },
     {
       id: 'canopy',
@@ -47,26 +44,28 @@ const DiagnosisHubScreen = () => {
       icon: 'leaf',
       iconColor: '#8B5CF6',
       bgColor: '#F5F3FF',
-      screen: 'CanopyGuide',
+      screen: 'CanopyCamera',
     },
   ];
 
   return (
-    <PageLayout title="진단" showBack={true} showFooter={false}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>진단</Text>
+      </View>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* 진단 도움말 */}
-        <HelpCard
-          id="help_diagnosis_hub"
-          title="진단 기능 안내"
-          body="사진 진단은 예방 참고용입니다. 정확도 100%가 아니므로 의심되면 전문가에게 문의하세요. 꾸준한 촬영이 AI 정확도를 높입니다."
-          icon="information-circle-outline"
-          iconColor="#EF4444"
-        />
+        <View style={styles.helpCard}>
+          <Ionicons name="information-circle-outline" size={20} color="#EF4444" />
+          <Text style={styles.helpText}>
+            사진 진단은 예방 참고용입니다. 정확도 100%가 아니므로 의심되면 전문가에게 문의하세요.
+          </Text>
+        </View>
 
         {CARDS.map((card) => (
           <TouchableOpacity
             key={card.id}
-            style={[styles.card, { backgroundColor: tc.surface }]}
+            style={styles.card}
             onPress={() => navigation.navigate(card.screen)}
             activeOpacity={0.7}
           >
@@ -74,21 +73,34 @@ const DiagnosisHubScreen = () => {
               <Ionicons name={card.icon as any} size={32} color={card.iconColor} />
             </View>
             <View style={styles.cardContent}>
-              <Text style={[styles.cardTitle, { color: tc.text.primary }]}>{card.title}</Text>
-              <Text style={[styles.cardSubtitle, { color: tc.text.secondary }]}>{card.subtitle}</Text>
+              <Text style={styles.cardTitle}>{card.title}</Text>
+              <Text style={styles.cardSubtitle}>{card.subtitle}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={22} color={tc.text.disabled} />
+            <Ionicons name="chevron-forward" size={22} color={colors.textDisabled} />
           </TouchableOpacity>
         ))}
 
         <View style={{ height: 20 }} />
       </ScrollView>
-    </PageLayout>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, paddingTop: 8, paddingHorizontal: 16 },
+  container: { flex: 1, backgroundColor: colors.background },
+  header: { paddingHorizontal: 20, paddingVertical: 16 },
+  headerTitle: { fontSize: 22, fontWeight: '700', color: colors.text },
+  scroll: { flex: 1, paddingHorizontal: 16 },
+  helpCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    gap: 10,
+  },
+  helpText: { flex: 1, fontSize: 13, color: '#7F1D1D', lineHeight: 20 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -107,7 +119,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardContent: { flex: 1 },
-  cardTitle: { fontSize: 17, fontWeight: '700', color: colors.text.primary, marginBottom: 4 },
+  cardTitle: { fontSize: 17, fontWeight: '700', color: colors.text, marginBottom: 4 },
   cardSubtitle: { fontSize: 13, color: colors.textSub, lineHeight: 20 },
 });
 

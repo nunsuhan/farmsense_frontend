@@ -8,6 +8,8 @@ import { colors } from '../../theme/colors';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getQuickRisk } from '../../services/diagnosisApi';
+import { dssApi } from '../../services/dssApi';
+import { useFarmId } from '../../store/useStore';
 
 // Disease Code Mapping
 const DISEASE_CODE_MAP: { [key: string]: string } = {
@@ -50,6 +52,8 @@ const DiagnosisResultScreen: React.FC = () => {
     const { imageUri, result } = route.params || {};
     const [saving, setSaving] = useState(false);
     const [envRisk, setEnvRisk] = useState<any>(null);
+    const [dssResult, setDssResult] = useState<any>(null);
+    const farmId = useFarmId();
 
     useEffect(() => {
         const loadRisk = async () => {
@@ -62,6 +66,22 @@ const DiagnosisResultScreen: React.FC = () => {
         };
         loadRisk();
     }, []);
+
+    // DSS 증상 진단 - 병해 감지 시 추가 권고사항 조회
+    useEffect(() => {
+        if (!result?.diagnosis || !farmId) return;
+        const diag = result.diagnosis;
+        const code = diag.disease_code;
+        if (code === 'healthy' || code === '0' || code === '정상') return;
+
+        dssApi.diagnoseSymptom(farmId, {
+            disease_name: diag.disease_name || getDiseaseName(code),
+            confidence: diag.confidence,
+            symptoms: diag.symptoms || [],
+        })
+            .then(setDssResult)
+            .catch(() => { /* DSS 진단 실패 시 무시 */ });
+    }, [result, farmId]);
 
     if (!result) {
         return (
@@ -92,8 +112,8 @@ const DiagnosisResultScreen: React.FC = () => {
         confidence = (diag.confidence <= 1 ? diag.confidence * 100 : diag.confidence);
         isHealthy = diag.disease_code === 'healthy' || diag.disease_code === '0' || diag.disease_code === '정상';
 
-        // Mock score logic if not provided
-        riskScore = isHealthy ? 5 : (diag.severity === '중증' ? 85 : (diag.severity === '경증' ? 55 : 30));
+        // Use actual confidence as risk score basis; fall back to severity-based estimate
+        riskScore = diag.risk_score ?? (isHealthy ? 5 : Math.round(confidence));
 
         if (presc) {
             expertAnswer = presc.summary;
@@ -198,6 +218,27 @@ const DiagnosisResultScreen: React.FC = () => {
                         "{currentEnv.msg}"
                     </Text>
                 </Card>
+
+                {/* 4-1. DSS 권고사항 */}
+                {dssResult && (
+                    <Card style={styles.sectionCard}>
+                        <Text variant="body1" weight="bold" style={styles.sectionTitle}>🔬 DSS 분석 권고</Text>
+                        {dssResult.recommendation && (
+                            <Text variant="body2" style={{ marginBottom: 8 }}>{dssResult.recommendation}</Text>
+                        )}
+                        {dssResult.treatments?.map((t: any, i: number) => (
+                            <View key={i} style={{ flexDirection: 'row', paddingVertical: 4 }}>
+                                <Text variant="caption" color="#3B82F6">• </Text>
+                                <Text variant="body2" style={{ flex: 1 }}>{t.name || t}</Text>
+                            </View>
+                        ))}
+                        {dssResult.severity && (
+                            <View style={[styles.contextBox, { marginTop: 8 }]}>
+                                <Text variant="caption" color="#4B5563">심각도: {dssResult.severity}</Text>
+                            </View>
+                        )}
+                    </Card>
+                )}
 
                 {/* 5. Regional Status */}
                 <Card style={styles.sectionCard}>
