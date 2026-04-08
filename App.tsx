@@ -12,6 +12,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { LogBox } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Suppress all logs for demo/production readiness
 LogBox.ignoreAllLogs(true);
@@ -21,15 +22,19 @@ LogBox.ignoreAllLogs(true);
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { initializeStore, useStore } from './src/store/useStore';
 import GlobalErrorBar from './src/components/common/GlobalErrorBar';
+import OnboardingScreen from './src/screens/onboarding/OnboardingScreen';
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const isInitialized = useStore((state) => state.isInitialized);
 
   useEffect(() => {
     const initialize = async () => {
       try {
         console.log('🚀 [App] Initializing Store...');
+        const flag = await AsyncStorage.getItem('onboarding_complete');
+        setShowOnboarding(flag !== 'true');
         await initializeStore();
         console.log('✅ [App] Store initialized');
 
@@ -69,7 +74,11 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <RootNavigator />
+        {showOnboarding ? (
+          <OnboardingScreen onComplete={() => setShowOnboarding(false)} />
+        ) : (
+          <RootNavigator />
+        )}
         <GlobalErrorBar />
         <StatusBar style="auto" />
       </SafeAreaProvider>
