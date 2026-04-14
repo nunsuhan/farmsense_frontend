@@ -2,17 +2,21 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { ONBOARDING } from '../../constants/onboardingTheme';
 
-interface Props { onFinish: () => void; }
+interface Props {
+  plan?: 'monthly' | 'yearly';
+  onFinish: () => void;
+}
 
 const KAKAO_CHANNEL_URL = 'https://pf.kakao.com/_xKxkxkx';
 
-export default function DoneStep({ onFinish }: Props) {
+export default function DoneStep({ plan = 'monthly', onFinish }: Props) {
+  const priceText = plan === 'monthly' ? '월 10,000원' : '년 100,000원';
   return (
     <View style={styles.container}>
       <View style={styles.checkCircle}><Text style={styles.checkMark}>✓</Text></View>
 
       <Text style={styles.title}>가입 완료!</Text>
-      <Text style={styles.desc}>2개월 무료 체험이 시작되었습니다</Text>
+      <Text style={styles.desc}>2개월 무료 체험이 시작되었습니다{'\n'}체험 후 {priceText} 자동결제</Text>
 
       <View style={styles.steps}>
         <Step n={1} text="카카오 채널 추가" />

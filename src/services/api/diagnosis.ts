@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 import apiClient from '../api';
 
-const API_BASE_URL = 'https://farmsense.kr';
+// API_BASE_URL은 API_CONFIG.BASE_URL 사용 (아래 import 참조)
 
 export interface DiagnosisResult {
     disease_name: string;

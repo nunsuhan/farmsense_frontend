@@ -28,18 +28,10 @@ const SettingsMainScreen = () => {
     {
       id: 1,
       title: '농장 기본정보',
-      subtitle: '농장명, 주소, 재배 품종 관리',
+      subtitle: '농장명, 주소, 품종, 생육일정, 시설 관리',
       icon: 'leaf',
       iconColor: '#10B981',
-      screen: 'FarmDetail', // Changed to new screen
-    },
-    {
-      id: 2,
-      title: '재배 환경 설정',
-      subtitle: '토양 정보, 관수/배수 시설',
-      icon: 'water',
-      iconColor: '#3B82F6',
-      screen: 'SoilEnvironment', // Changed to new screen
+      screen: 'FarmBasicInfo',
     },
     {
       id: 3,

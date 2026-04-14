@@ -7,12 +7,13 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { useStore } from '../../store/useStore';
-import { GRAPE_VARIETIES } from '../../constants/grapeContext'; // 품종 데이터 연동
+import { GRAPE_VARIETIES } from '../../constants/grapeContext';
 import HelpModal from '../../components/common/HelpModal';
 import { useHelpModal } from '../../hooks/useHelpModal';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -20,24 +21,34 @@ import { farmmapApi } from '../../services/farmmapApi';
 
 const FarmBasicInfoScreen = () => {
   const navigation = useNavigation();
-  const { farmInfo, setFarmInfo } = useStore(); // 전역 스토어
+  const { farmInfo, setFarmInfo } = useStore();
   const { isVisible: showHelp, showHelp: openHelp, closeHelp } = useHelpModal('HELP_FARM_BASIC');
 
-  // 로컬 상태
+  // 기본 정보
   const [farmName, setFarmName] = useState('');
+  const [facilityId, setFacilityId] = useState('');
   const [variety, setVariety] = useState('SHINE_MUSCAT');
   const [cultivationType, setCultivationType] = useState('RAIN_SHELTER');
   const [plantingYear, setPlantingYear] = useState('2020');
-  const [region, setRegion] = useState('경북 김천'); // This is now used as Address
+  const [region, setRegion] = useState('');
+
+  // 생육 정보 (FacilityInfo에서 이동)
+  const [budBreakDate, setBudBreakDate] = useState('');
+  const [harvestTargetDate, setHarvestTargetDate] = useState('');
+  const [hasDrainage, setHasDrainage] = useState(false);
 
   // 초기 로드
   useEffect(() => {
     if (farmInfo) {
       setFarmName(farmInfo.name || '');
+      setFacilityId(farmInfo.id || '');
       setVariety(farmInfo.variety || 'SHINE_MUSCAT');
       setCultivationType(farmInfo.cultivationType || 'RAIN_SHELTER');
       setPlantingYear(farmInfo.plantingYear || '2020');
       setRegion(farmInfo.address || farmInfo.region || '');
+      setBudBreakDate((farmInfo as any).budBreakDate || '');
+      setHarvestTargetDate((farmInfo as any).harvestTargetDate || '');
+      setHasDrainage((farmInfo as any).hasDrainage || false);
     }
   }, [farmInfo]);
 
@@ -50,15 +61,18 @@ const FarmBasicInfoScreen = () => {
     if (farmInfo) {
       const info = {
         ...farmInfo,
+        id: facilityId || farmInfo.id,
         name: farmName,
         variety,
         cultivationType,
         plantingYear,
-        address: region, // Save as address
-        region: region,  // Keep region for compatibility
+        address: region,
+        region: region,
+        budBreakDate,
+        harvestTargetDate,
+        hasDrainage,
       };
 
-      // Sync Geo automatically on save
       try {
         await farmmapApi.syncFarmGeo(farmInfo.id, region);
       } catch (e) {
@@ -66,7 +80,7 @@ const FarmBasicInfoScreen = () => {
       }
 
       await setFarmInfo(info);
-      Alert.alert('저장 완료', '농장 정보가 저장되었습니다.\n이제 질문 작성 시 자동으로 입력됩니다.', [
+      Alert.alert('저장 완료', '농장 정보가 저장되었습니다.', [
         { text: '확인', onPress: () => navigation.goBack() }
       ]);
     } else {
@@ -132,6 +146,7 @@ const FarmBasicInfoScreen = () => {
         ]}
       />
       <ScrollView style={styles.content}>
+        {/* 기본 정보 */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="leaf" size={20} color="#10B981" />
@@ -139,6 +154,7 @@ const FarmBasicInfoScreen = () => {
           </View>
 
           {renderInput('농장 이름', farmName, setFarmName, '예: 행복한 포도농장')}
+          {renderInput('시설 ID (농장 ID)', facilityId, setFacilityId, '예: FARM001')}
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>농장 주소 (위치 연동)</Text>
@@ -167,7 +183,6 @@ const FarmBasicInfoScreen = () => {
             </View>
           </View>
 
-          {/* Farm Map Registration Button (Restored) */}
           <TouchableOpacity
             style={styles.farmMapButton}
             onPress={() => navigation.navigate('FarmMap' as never)}
@@ -183,6 +198,7 @@ const FarmBasicInfoScreen = () => {
           </TouchableOpacity>
         </View>
 
+        {/* 재배 환경 */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="options" size={20} color="#10B981" />
@@ -202,6 +218,57 @@ const FarmBasicInfoScreen = () => {
 
           {renderInput('식재 연도 (정식)', plantingYear, setPlantingYear, '예: 2020')}
         </View>
+
+        {/* 생육 일정 & 시설 */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="calendar" size={20} color="#10B981" />
+            <Text style={styles.sectionTitle}>생육 일정 및 시설</Text>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>맹아일 (작기 시작일)</Text>
+            <Text style={styles.hint}>포도나무 눈이 트기 시작하는 날짜</Text>
+            <TextInput
+              style={styles.input}
+              value={budBreakDate}
+              onChangeText={setBudBreakDate}
+              placeholder="예: 2025-03-15"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>수확 목표일</Text>
+            <Text style={styles.hint}>농약 PHI 확인 및 품질 관리 목표 시점</Text>
+            <TextInput
+              style={styles.input}
+              value={harvestTargetDate}
+              onChangeText={setHarvestTargetDate}
+              placeholder="예: 2025-09-15"
+            />
+          </View>
+
+          <View style={styles.switchRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>배수 시설 여부</Text>
+              <Text style={styles.hint}>농장 내 배수 시설 설치 여부</Text>
+            </View>
+            <Switch
+              value={hasDrainage}
+              onValueChange={setHasDrainage}
+              trackColor={{ false: '#D1D5DB', true: '#10B981' }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+        </View>
+
+        {/* 토양정보 바로가기 */}
+        <TouchableOpacity
+          style={[styles.saveButton, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#3B82F6', marginBottom: 12 }]}
+          onPress={() => navigation.navigate('SoilEnvironment' as never)}
+        >
+          <Text style={[styles.saveButtonText, { color: '#3B82F6' }]}>토양 정보 조회하기</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.saveButton, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#10B981', marginBottom: 12 }]}
@@ -297,6 +364,17 @@ const styles = StyleSheet.create({
   chipTextActive: {
     color: '#047857',
     fontWeight: 'bold',
+  },
+  hint: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginBottom: 8,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 12,
   },
   saveButton: {
     backgroundColor: '#10B981',

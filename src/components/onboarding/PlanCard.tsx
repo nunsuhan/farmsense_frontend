@@ -10,12 +10,23 @@ const FEATURES = [
   '시즌 종합 보고서',
 ];
 
-export default function PlanCard() {
+interface Props {
+  plan?: 'monthly' | 'yearly';
+}
+
+export default function PlanCard({ plan = 'monthly' }: Props) {
+  const isYearly = plan === 'yearly';
   return (
     <View style={styles.card}>
-      <View style={styles.badge}><Text style={styles.badgeText}>추천</Text></View>
+      <View style={styles.badge}>
+        <Text style={styles.badgeText}>{isYearly ? '2개월 절약' : '추천'}</Text>
+      </View>
       <Text style={styles.name}>프로 플랜</Text>
-      <Text style={styles.price}>9,900원<Text style={styles.unit}>/월</Text></Text>
+      {isYearly ? (
+        <Text style={styles.price}>100,000원<Text style={styles.unit}>/년</Text></Text>
+      ) : (
+        <Text style={styles.price}>10,000원<Text style={styles.unit}>/월</Text></Text>
+      )}
       <View style={{ height: 16 }} />
       {FEATURES.map((f) => (
         <View key={f} style={styles.featRow}>

@@ -136,7 +136,8 @@ const AccountSettingsScreen: React.FC = () => {
   const getAvatarUrl = (url: string | null) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    return `https://farmsense.kr${url}`;
+    const { API_CONFIG: cfg } = require('../../constants/config');
+    return `${cfg.BASE_URL.replace('/api', '')}${url}`;
   };
 
   const handleEditAvatar = () => {
@@ -175,11 +176,16 @@ const AccountSettingsScreen: React.FC = () => {
   };
 
   const handlePickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('권한 필요', '갤러리 접근 권한이 필요합니다.');
+      return;
+    }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.8,
+      quality: 0.7,
     });
 
     if (!result.canceled && result.assets[0].uri) {

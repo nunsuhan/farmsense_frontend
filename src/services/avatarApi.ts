@@ -1,4 +1,5 @@
 import apiClient from './api';
+import { API_CONFIG } from '../constants/config';
 
 export interface AvatarPreset {
     key: string;
@@ -11,6 +12,17 @@ export interface AvatarInfo {
     preset_avatar: string | null;
     custom_image_url: string | null;
     avatar_url: string;
+}
+
+// 파일 확장자에서 MIME type 추출
+function getMimeType(uri: string): string {
+    const ext = uri.split('.').pop()?.toLowerCase() || '';
+    switch (ext) {
+        case 'png': return 'image/png';
+        case 'gif': return 'image/gif';
+        case 'webp': return 'image/webp';
+        default: return 'image/jpeg';
+    }
 }
 
 export const avatarApi = {
@@ -28,34 +40,26 @@ export const avatarApi = {
         return response.data;
     },
 
-    // 3. 사용자 이미지 업로드
+    // 3. 사용자 이미지 업로드 (apiClient 사용 → 토큰 자동 갱신)
     uploadAvatar: async (imageUri: string): Promise<any> => {
-        const { getAuthTokens } = await import('../utils/secureStorage');
-        const tokens = await getAuthTokens();
-        
         const formData = new FormData();
         const filename = imageUri.split('/').pop() || 'avatar.jpg';
-        
+        const mimeType = getMimeType(filename);
+
         formData.append('image', {
             uri: imageUri,
-            type: 'image/jpeg',
+            type: mimeType,
             name: filename,
         } as any);
-        
-        const response = await fetch('https://farmsense.kr/api/users/avatar/upload/', {
-            method: 'POST',
+
+        const response = await apiClient.post('/users/avatar/upload/', formData, {
             headers: {
-                'Authorization': `Bearer ${tokens?.access}`,
+                'Content-Type': 'multipart/form-data',
             },
-            body: formData,
+            timeout: 30000,
         });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Upload failed: ${response.status} - ${errorText}`);
-        }
-        
-        return response.json();
+
+        return response.data;
     },
 
     // 4. 기본 아바타로 초기화

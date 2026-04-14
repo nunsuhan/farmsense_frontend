@@ -1,6 +1,6 @@
 console.log('### LoginScreen loaded ###');
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,22 +8,32 @@ import {
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
+  ScrollView,
   Platform,
   Alert,
-  Image,
-  Linking
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStore } from '../store/useStore';
 import { authApi } from '../services/authApi';
-import { API_CONFIG } from '../constants/config';
+import authService from '../services/authService';
+import { setAuthTokens } from '../utils/secureStorage';
 
-// 소셜 로그인 아이콘 URL (CDN)
-const SOCIAL_ICONS = {
-  KAKAO: 'https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png', // 카카오
-  NAVER: 'https://static.nid.naver.com/oauth/button_g.PNG', // 네이버 (대체)
-  GOOGLE: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png', // 구글
-};
+function formatPhone(raw: string) {
+  const d = raw.replace(/\D/g, '').slice(0, 11);
+  if (d.length < 4) return d;
+  if (d.length < 8) return `${d.slice(0, 3)}-${d.slice(3)}`;
+  return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
+}
+
+function fmtTimer(s: number) {
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m}:${r.toString().padStart(2, '0')}`;
+}
+
+// SMS 인증 단계
+type PhoneStep = 'INPUT' | 'VERIFY';
 
 const LoginScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -32,62 +42,109 @@ const LoginScreen: React.FC = () => {
   const [loginMethod, setLoginMethod] = useState<'phone' | 'email'>('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // 휴대폰 인증 상태
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneStep, setPhoneStep] = useState<PhoneStep>('INPUT');
+  const [verifyCode, setVerifyCode] = useState('');
+  const [seconds, setSeconds] = useState(0);
 
-  const handleLogin = async () => {
-    if (loginMethod === 'phone') {
-      Alert.alert('알림', '휴대폰 번호 로그인은 준비 중입니다.\n이메일 로그인을 이용해주세요.');
-      setLoginMethod('email');
-      return;
-    }
+  // 인증 타이머
+  useEffect(() => {
+    if (seconds <= 0) return;
+    const t = setInterval(() => setSeconds((s) => s - 1), 1000);
+    return () => clearInterval(t);
+  }, [seconds]);
 
+  // 탭 전환 시 초기화
+  const switchTab = (method: 'phone' | 'email') => {
+    setLoginMethod(method);
+    setPhoneStep('INPUT');
+    setVerifyCode('');
+    setSeconds(0);
+  };
+
+  // 이메일 로그인
+  const handleEmailLogin = async () => {
     if (!email || !password) {
       Alert.alert('알림', '이메일과 비밀번호를 입력해주세요.');
       return;
     }
-
+    setLoading(true);
     try {
-      const response = await authApi.login({ email, password });
-      console.log('✅ [Login] 성공:', response);
-
-      // 토큰 저장 완료 대기
+      await authApi.login({ email, password });
       await new Promise(resolve => setTimeout(resolve, 300));
-
       const profile = await authApi.getFullProfile();
       await setUser(profile as any);
-
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainTab' }],
-      });
+      navigation.reset({ index: 0, routes: [{ name: 'MainTab' }] });
     } catch (error: any) {
-      console.error('❌ [Login] 실패:', error);
       Alert.alert('로그인 실패', error.message || '이메일 또는 비밀번호를 확인해주세요.');
     }
+    setLoading(false);
   };
 
-  /**
-   * 소셜 로그인 핸들러
-   * 웹 브라우저를 통해 백엔드 인증 엔드포인트로 이동합니다.
-   * 백엔드는 인증 후 'farmsense://auth/callback?access=...' 형태로 리다이렉트 해야 합니다.
-   * (현재 서버는 리다이렉트 설정이 되어있지 않을 수 있어, 브라우저에서 멈출 수 있습니다)
-   */
-  const handleSocialLogin = async (provider: 'kakao' | 'naver' | 'google') => {
-    const backendUrl = `${API_CONFIG.BASE_URL}/auth/${provider}/login/`;
-
-    // 알림: 실제 앱 연동을 위해서는 서버의 Redirect URI가 앱 스킴(farmsense://)으로 설정되어야 함
-    console.log(`🔗 [Social] ${provider} 로그인 시도: ${backendUrl}`);
-
+  // 인증번호 전송 (알리고 SMS)
+  const handleSendCode = async () => {
+    const digits = phoneNumber.replace(/\D/g, '');
+    if (digits.length < 10) {
+      Alert.alert('알림', '휴대폰 번호를 정확히 입력해주세요.');
+      return;
+    }
+    setLoading(true);
     try {
-      const supported = await Linking.canOpenURL(backendUrl);
-      if (supported) {
-        await Linking.openURL(backendUrl);
+      const res = await authService.sendPhoneCode(digits);
+      if (res.success) {
+        setPhoneStep('VERIFY');
+        setSeconds(180);
+        setVerifyCode('');
       } else {
-        Alert.alert('오류', '브라우저를 열 수 없습니다.');
+        Alert.alert('전송 실패', res.error || '잠시 후 다시 시도해주세요.');
       }
-    } catch (err) {
-      console.error('An error occurred', err);
-      Alert.alert('오류', '로그인 페이지 이동 중 문제가 발생했습니다.');
+    } catch (e: any) {
+      Alert.alert('오류', e?.response?.data?.error || e?.message || 'SMS 전송 실패');
+    }
+    setLoading(false);
+  };
+
+  // 인증번호 확인 & 로그인
+  const handleVerifyCode = async () => {
+    if (verifyCode.length !== 6) {
+      Alert.alert('알림', '6자리 인증번호를 입력해주세요.');
+      return;
+    }
+    const digits = phoneNumber.replace(/\D/g, '');
+    setLoading(true);
+    try {
+      const res = await authService.verifyPhoneCode(digits, verifyCode);
+      // 토큰 저장
+      await setAuthTokens(res.token, res.token);
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      try {
+        const profile = await authApi.getFullProfile();
+        await setUser(profile as any);
+      } catch {
+        // 프로필 로드 실패해도 로그인은 진행
+      }
+
+      navigation.reset({ index: 0, routes: [{ name: 'MainTab' }] });
+    } catch (e: any) {
+      Alert.alert('인증 실패', e?.response?.data?.error || e?.message || '인증번호를 확인해주세요.');
+    }
+    setLoading(false);
+  };
+
+  // 인증번호 재전송
+  const handleResend = async () => {
+    const digits = phoneNumber.replace(/\D/g, '');
+    try {
+      await authService.sendPhoneCode(digits);
+      setSeconds(180);
+      setVerifyCode('');
+      Alert.alert('알림', '인증번호를 재전송했습니다.');
+    } catch (e: any) {
+      Alert.alert('오류', e?.response?.data?.error || '재전송 실패');
     }
   };
 
@@ -96,7 +153,7 @@ const LoginScreen: React.FC = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.innerContainer}>
+      <ScrollView contentContainerStyle={styles.innerContainer} keyboardShouldPersistTaps="handled">
         {/* Logo Section */}
         <View style={styles.logoSection}>
           <View style={styles.iconContainer}>
@@ -110,13 +167,13 @@ const LoginScreen: React.FC = () => {
         <View style={styles.tabContainer}>
           <TouchableOpacity
             style={[styles.tabButton, loginMethod === 'email' && styles.tabActive]}
-            onPress={() => setLoginMethod('email')}
+            onPress={() => switchTab('email')}
           >
             <Text style={[styles.tabText, loginMethod === 'email' && styles.tabTextActive]}>이메일 로그인</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tabButton, loginMethod === 'phone' && styles.tabActive]}
-            onPress={() => setLoginMethod('phone')}
+            onPress={() => switchTab('phone')}
           >
             <Text style={[styles.tabText, loginMethod === 'phone' && styles.tabTextActive]}>휴대폰 번호</Text>
           </TouchableOpacity>
@@ -145,71 +202,71 @@ const LoginScreen: React.FC = () => {
                 value={password}
                 onChangeText={setPassword}
               />
+              <TouchableOpacity style={styles.primaryButton} onPress={handleEmailLogin} disabled={loading}>
+                {loading ? <ActivityIndicator color="#1a1a2e" /> : (
+                  <Text style={styles.primaryButtonText}>로그인</Text>
+                )}
+              </TouchableOpacity>
             </>
-          ) : (
+          ) : phoneStep === 'INPUT' ? (
             <>
               <Text style={styles.label}>휴대폰 번호</Text>
               <TextInput
                 style={styles.input}
                 placeholder="010-0000-0000"
                 placeholderTextColor="#6B7280"
-                keyboardType="phone-pad"
+                keyboardType="number-pad"
                 value={phoneNumber}
-                onChangeText={setPhoneNumber}
+                onChangeText={(t) => setPhoneNumber(formatPhone(t))}
+                maxLength={13}
               />
+              <TouchableOpacity style={styles.primaryButton} onPress={handleSendCode} disabled={loading}>
+                {loading ? <ActivityIndicator color="#1a1a2e" /> : (
+                  <Text style={styles.primaryButtonText}>인증번호 받기</Text>
+                )}
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <Text style={styles.phoneDisplay}>{phoneNumber}</Text>
+              <Text style={styles.verifyDesc}>으로 전송된 인증번호를 입력해주세요</Text>
+
+              {seconds > 0 && <Text style={styles.timer}>{fmtTimer(seconds)}</Text>}
+
+              <Text style={styles.label}>인증번호 (6자리)</Text>
+              <TextInput
+                style={[styles.input, styles.codeInput]}
+                placeholder="000000"
+                placeholderTextColor="#6B7280"
+                keyboardType="number-pad"
+                value={verifyCode}
+                onChangeText={(t) => setVerifyCode(t.replace(/\D/g, '').slice(0, 6))}
+                maxLength={6}
+                autoFocus
+              />
+              <TouchableOpacity
+                style={[styles.primaryButton, seconds <= 0 && styles.buttonDisabled]}
+                onPress={handleVerifyCode}
+                disabled={loading || seconds <= 0}
+              >
+                {loading ? <ActivityIndicator color="#1a1a2e" /> : (
+                  <Text style={styles.primaryButtonText}>확인</Text>
+                )}
+              </TouchableOpacity>
+
+              <View style={styles.verifyActions}>
+                <TouchableOpacity onPress={handleResend}>
+                  <Text style={styles.resendText}>인증번호 재전송</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => { setPhoneStep('INPUT'); setVerifyCode(''); setSeconds(0); }}>
+                  <Text style={styles.resendText}>번호 변경</Text>
+                </TouchableOpacity>
+              </View>
             </>
           )}
-
-          <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
-            <Text style={styles.primaryButtonText}>
-              {loginMethod === 'email' ? '로그인' : '인증번호 받기'}
-            </Text>
-          </TouchableOpacity>
         </View>
 
-        {/* Social Login Section */}
-        <View style={styles.socialSection}>
-          <Text style={styles.socialDividerText}>또는 소셜 계정으로 로그인</Text>
-          <View style={styles.socialButtonsContainer}>
-            {/* Kakao */}
-            <TouchableOpacity
-              style={[styles.socialButton, { backgroundColor: '#FEE500' }]}
-              onPress={() => handleSocialLogin('kakao')}
-            >
-              <Image
-                source={{ uri: SOCIAL_ICONS.KAKAO }}
-                style={{ width: 24, height: 24 }}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-
-            {/* Naver */}
-            <TouchableOpacity
-              style={[styles.socialButton, { backgroundColor: '#03C75A' }]}
-              onPress={() => handleSocialLogin('naver')}
-            >
-              <Image
-                source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Naver_Logotype.svg' }} // SVG might not work with Image, using text N for now or finding PNG
-              // Using a text 'N' fallback if image fails or replacing with a PNG url
-              />
-              <Text style={[styles.socialButtonText, { color: '#FFFFFF' }]}>N</Text>
-            </TouchableOpacity>
-
-            {/* Google */}
-            <TouchableOpacity
-              style={[styles.socialButton, { backgroundColor: '#FFFFFF' }]}
-              onPress={() => handleSocialLogin('google')}
-            >
-              <Image
-                source={{ uri: SOCIAL_ICONS.GOOGLE }}
-                style={{ width: 24, height: 24 }}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Signup Link */}
+        {/* Signup & Forgot Password */}
         <View style={styles.signupSection}>
           <Text style={styles.signupText}>처음이신가요? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
@@ -221,7 +278,7 @@ const LoginScreen: React.FC = () => {
             <Text style={[styles.signupText, { textDecorationLine: 'underline', fontSize: 13 }]}>비밀번호를 잊으셨나요?</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -233,7 +290,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a2e',
   },
   innerContainer: {
-    flex: 1,
+    flexGrow: 1,
     padding: 24,
     justifyContent: 'center',
   },
@@ -287,7 +344,7 @@ const styles = StyleSheet.create({
   },
   // 폼 섹션
   formSection: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
@@ -303,6 +360,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 16,
   },
+  codeInput: {
+    fontSize: 24,
+    fontWeight: '700',
+    textAlign: 'center',
+    letterSpacing: 8,
+  },
   primaryButton: {
     width: '100%',
     padding: 16,
@@ -311,17 +374,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
+  buttonDisabled: {
+    backgroundColor: '#6B7280',
+  },
   primaryButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#1a1a2e',
+  },
+  // 휴대폰 인증
+  phoneDisplay: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFD700',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  verifyDesc: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  timer: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#10B981',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  verifyActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 24,
+    marginTop: 16,
+  },
+  resendText: {
+    color: '#9CA3AF',
+    fontSize: 13,
+    textDecorationLine: 'underline',
   },
   // 회원가입
   signupSection: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 12,
   },
   signupText: {
     color: '#9CA3AF',
@@ -331,37 +429,6 @@ const styles = StyleSheet.create({
     color: '#FFD700',
     fontSize: 14,
     textDecorationLine: 'underline',
-  },
-  // 소셜 로그인 아이콘 버튼
-  socialSection: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  socialDividerText: {
-    color: '#6B7280',
-    fontSize: 14,
-    marginBottom: 16,
-  },
-  socialButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 20, // React Native 0.71+ support gap
-  },
-  socialButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  socialButtonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
   },
 });
 

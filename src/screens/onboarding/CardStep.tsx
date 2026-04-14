@@ -4,12 +4,14 @@ import { ONBOARDING } from '../../constants/onboardingTheme';
 import authService from '../../services/authService';
 
 interface Props {
+  plan: 'monthly' | 'yearly';
   onCheckout: (checkoutUrl: string, successUrl: string, failUrl: string, customerKey: string) => void;
 }
 
-export default function CardStep({ onCheckout }: Props) {
+export default function CardStep({ plan, onCheckout }: Props) {
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
+  const priceText = plan === 'monthly' ? '월 10,000원' : '년 100,000원';
 
   const start = async () => {
     if (!agree) {
@@ -18,7 +20,7 @@ export default function CardStep({ onCheckout }: Props) {
     }
     setLoading(true);
     try {
-      const res = await authService.createCheckout();
+      const res = await authService.createCheckout(plan);
       onCheckout(res.checkout_url, res.success_url, res.fail_url, res.customer_key);
     } catch (e: any) {
       Alert.alert('오류', e?.response?.data?.error || '결제창 연결 실패');
@@ -32,7 +34,7 @@ export default function CardStep({ onCheckout }: Props) {
       <Text style={styles.desc}>토스페이먼츠 보안 결제창에서{'\n'}카드를 안전하게 등록합니다</Text>
 
       <View style={styles.infoBox}>
-        <Text style={styles.infoLine}>• 2개월 무료 체험 후 자동 결제</Text>
+        <Text style={styles.infoLine}>• 2개월 무료 체험 후 {priceText} 자동 결제</Text>
         <Text style={styles.infoLine}>• 체험 중 해지 시 무료</Text>
         <Text style={styles.infoLine}>• 결제 정보는 토스페이먼츠가 안전 관리</Text>
       </View>

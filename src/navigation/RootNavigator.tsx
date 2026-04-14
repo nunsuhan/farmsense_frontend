@@ -32,7 +32,7 @@ import DailyPrescriptionScreen from '../screens/DailyPrescriptionScreen';
 import GrowthDiaryScreen from '../screens/GrowthDiaryScreen';
 import FarmMapScreen from '../screens/FarmMapScreen';
 import FarmMapAdvancedScreen from '../screens/FarmMapAdvancedScreen';
-import FacilityInfoScreen from '../screens/FacilityInfoScreen';
+// FacilityInfoScreen 삭제됨 - FarmBasicInfoScreen으로 통합
 import ReverseAnalysisScreen from '../screens/ReverseAnalysisScreen';
 import PesticideRecordScreen from '../screens/PesticideRecordScreen';
 import CanopyCameraScreen from '../screens/CanopyCameraScreen';

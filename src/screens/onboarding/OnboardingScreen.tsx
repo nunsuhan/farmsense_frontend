@@ -18,6 +18,7 @@ interface Props {
 
 export default function OnboardingScreen({ onComplete }: Props) {
   const { state, next, update, goto } = useOnboarding();
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
   const [tossPayload, setTossPayload] = useState<{
     checkoutUrl: string; successUrl: string; failUrl: string; customerKey: string;
   } | null>(null);
@@ -26,7 +27,6 @@ export default function OnboardingScreen({ onComplete }: Props) {
     try {
       await AsyncStorage.setItem('onboarding_complete', 'true');
       if (state.token) {
-        // Save the access token; refresh handled by backend on next call
         await setAuthTokens(state.token, state.token);
       }
     } catch {}
@@ -56,16 +56,19 @@ export default function OnboardingScreen({ onComplete }: Props) {
           onNext={(token) => { update({ token }); goto('PLAN'); }}
         />
       )}
-      {state.step === 'PLAN' && <PlanStep onNext={next} />}
+      {state.step === 'PLAN' && (
+        <PlanStep onNext={(plan) => { setSelectedPlan(plan); next(); }} />
+      )}
       {state.step === 'CARD' && (
         <CardStep
+          plan={selectedPlan}
           onCheckout={(checkoutUrl, successUrl, failUrl, customerKey) => {
             update({ customerKey });
             setTossPayload({ checkoutUrl, successUrl, failUrl, customerKey });
           }}
         />
       )}
-      {state.step === 'DONE' && <DoneStep onFinish={finish} />}
+      {state.step === 'DONE' && <DoneStep plan={selectedPlan} onFinish={finish} />}
     </View>
   );
 }

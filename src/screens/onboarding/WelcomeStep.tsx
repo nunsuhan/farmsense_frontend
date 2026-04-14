@@ -38,7 +38,7 @@ export default function WelcomeStep({ onNext }: Props) {
       </TouchableOpacity>
 
       <Text style={styles.trial}>2개월 무료 체험</Text>
-      <Text style={styles.trialSub}>이후 월 9,900원</Text>
+      <Text style={styles.trialSub}>이후 월 10,000원 / 년 100,000원</Text>
     </ScrollView>
   );
 }
