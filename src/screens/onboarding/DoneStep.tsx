@@ -7,7 +7,7 @@ interface Props {
   onFinish: () => void;
 }
 
-const KAKAO_CHANNEL_URL = 'https://pf.kakao.com/_xKxkxkx';
+const KAKAO_CHANNEL_URL = 'https://pf.kakao.com/_yzxbqX';
 
 export default function DoneStep({ plan = 'monthly', onFinish }: Props) {
   const priceText = plan === 'monthly' ? '월 10,000원' : '년 100,000원';

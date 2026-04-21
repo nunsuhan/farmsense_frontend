@@ -42,8 +42,6 @@ const SAMPLE_OPINIONS = [
   },
 ];
 
-const SUPPORTED_CROPS = ['포도', '딸기', '참외', '오이', '토마토'];
-
 const GuestHomeScreen = () => {
   const navigation = useNavigation<any>();
 
@@ -69,21 +67,12 @@ const GuestHomeScreen = () => {
           </View>
         ))}
 
-        <Text style={styles.sectionTitle}>지원 작물</Text>
-        <View style={styles.cropRow}>
-          {SUPPORTED_CROPS.map((crop) => (
-            <View key={crop} style={styles.cropBadge}>
-              <Text style={styles.cropText}>{crop}</Text>
-            </View>
-          ))}
-        </View>
-
         <TouchableOpacity
           style={styles.kakaoButton}
           onPress={() => navigation.navigate('Login')}
           activeOpacity={0.8}
         >
-          <Text style={styles.kakaoButtonText}>카카오로 시작하기</Text>
+          <Text style={styles.kakaoButtonText}>로그인 / 회원가입</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -91,7 +80,7 @@ const GuestHomeScreen = () => {
           onPress={() => navigation.navigate('Login')}
           activeOpacity={0.8}
         >
-          <Text style={styles.googleButtonText}>구글로 시작하기</Text>
+          <Text style={styles.googleButtonText}>기존 계정으로 로그인</Text>
         </TouchableOpacity>
 
         <View style={{ height: 40 }} />

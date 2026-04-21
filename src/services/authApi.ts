@@ -217,9 +217,12 @@ export const authApi = {
   },
 
   // 전체 프로필 정보 조회 (사용자 + 확장 프로필)
+  // NOTE: 서버 user_profiles/views.py의 ProfileUpdateView 클래스 중복 정의
+  // (line 248/347)로 GET 메서드가 사라져 'Method GET not allowed' 반환됨.
+  // 단기 우회로 /users/profile/ (ProfileView) 사용. 서버 수정 후 원복 예정.
   getFullProfile: async (): Promise<UserProfile> => {
     console.log('📡 [authApi] 전체 프로필 조회');
-    const response = await apiClient.get<UserProfile>('/users/profile/update/');
+    const response = await apiClient.get<UserProfile>('/users/profile/');
     console.log('✅ [authApi] 프로필 응답:', response.data);
     return response.data;
   },
