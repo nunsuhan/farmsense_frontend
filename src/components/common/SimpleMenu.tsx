@@ -60,7 +60,7 @@ const SimpleMenu: React.FC<SimpleMenuProps> = ({ visible, onClose }) => {
       label: 'AI 서비스',
       icon: 'bulb-outline',
       subItems: [
-        { id: 'qna', label: 'AI 상담 (Q&A)', icon: 'chatbubbles-outline', screen: 'QnA' },
+        { id: 'qna', label: 'AI 상담 (Q&A)', icon: 'chatbubbles-outline', screen: 'QnAScreen' },
         { id: 'diagnosis', label: '병해 진단', icon: 'search-outline', screen: 'Diagnosis' },
         { id: 'prescription', label: '일일 처방전', icon: 'medical-outline', screen: 'DailyPrescription' },
         { id: 'reverse', label: '역분석', icon: 'analytics-outline', screen: 'ReverseAnalysis' },
@@ -102,7 +102,7 @@ const SimpleMenu: React.FC<SimpleMenuProps> = ({ visible, onClose }) => {
       icon: 'settings-outline',
       subItems: [
         { id: 'farm-info', label: '농장 기본 정보', icon: 'home-outline', screen: 'FarmBasicInfo' },
-        { id: 'facility', label: '시설 정보', icon: 'business-outline', screen: 'FacilityInfo' },
+        { id: 'facility', label: '농장 기본정보', icon: 'business-outline', screen: 'FarmBasicInfo' },
         { id: 'sensor', label: '센서 등록', icon: 'wifi-outline', screen: 'SensorRegistration' },
         { id: 'account', label: '계정 설정', icon: 'person-outline', screen: 'AccountSettings' },
         { id: 'notification-settings', label: '알림 설정', icon: 'notifications-outline', screen: 'NotificationSettings' },

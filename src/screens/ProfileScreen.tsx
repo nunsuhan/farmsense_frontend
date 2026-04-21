@@ -25,12 +25,13 @@ import {
 } from '../store/useStore';
 import { authApi } from '../services/authApi';
 import { avatarApi } from '../services/avatarApi';
+import { API_CONFIG } from '../constants/config';
 
-const APP_CONFIG = {
+const PROFILE_CONFIG = {
   APP_NAME: '포도박사',
   VERSION: '1.0.0',
   SUPPORT_EMAIL: 'support@farmsense.kr',
-  DEFAULT_AVATAR: 'https://farmsense.kr/static/images/default_avatar.png', // Fallback
+  DEFAULT_AVATAR: `${API_CONFIG.BASE_URL.replace('/api', '')}/static/images/default_avatar.png`,
 };
 
 interface SettingItemProps {
@@ -87,9 +88,10 @@ const ProfileScreen: React.FC = () => {
       const info = await avatarApi.getMyAvatar();
       if (info && info.avatar_url) {
         // 상대경로면 도메인 추가
+        const baseOrigin = API_CONFIG.BASE_URL.replace('/api', '');
         const fullUrl = info.avatar_url.startsWith('http')
           ? info.avatar_url
-          : `https://farmsense.kr${info.avatar_url}`;
+          : `${baseOrigin}${info.avatar_url}`;
         setAvatarUrl(fullUrl);
       }
     } catch (e) {
@@ -127,28 +129,43 @@ const ProfileScreen: React.FC = () => {
   };
 
   const pickFromGallery = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      handleUpload(result.assets[0].uri);
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('권한 필요', '갤러리 접근 권한을 허용해주세요.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        handleUpload(result.assets[0].uri);
+      }
+    } catch (e: any) {
+      Alert.alert('오류', '갤러리를 열 수 없습니다.');
     }
   };
 
   const takePhoto = async () => {
-    // Permission check implied or handled by Expo
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      handleUpload(result.assets[0].uri);
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('권한 필요', '카메라 권한을 허용해주세요.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        handleUpload(result.assets[0].uri);
+      }
+    } catch (e: any) {
+      Alert.alert('오류', '카메라를 열 수 없습니다.');
     }
   };
 
@@ -176,9 +193,10 @@ const ProfileScreen: React.FC = () => {
 
       if (res.avatar_url) {
         // 상대경로면 도메인 추가
+        const baseOriginUpload = API_CONFIG.BASE_URL.replace('/api', '');
         const baseUrl = res.avatar_url.startsWith('http')
           ? res.avatar_url
-          : `https://farmsense.kr${res.avatar_url}`;
+          : `${baseOriginUpload}${res.avatar_url}`;
         // Cache busting: Append timestamp to force image refresh
         const newUrl = `${baseUrl}?t=${new Date().getTime()}`;
         setAvatarUrl(newUrl);
@@ -231,7 +249,7 @@ const ProfileScreen: React.FC = () => {
   };
 
   const goToFacilityInfo = () => {
-    navigation.navigate('FacilityInfo');
+    navigation.navigate('FarmBasicInfo');
   };
 
   const goToTerms = () => {
@@ -257,7 +275,7 @@ const ProfileScreen: React.FC = () => {
   // Show about app
   const showAbout = () => {
     Alert.alert(
-      `${APP_CONFIG.APP_NAME} v${APP_CONFIG.VERSION}`,
+      `${PROFILE_CONFIG.APP_NAME} v${PROFILE_CONFIG.VERSION}`,
       '🍇 포도 재배 농가를 위한\n스마트팜 의사결정 지원 시스템\n\n' +
       '주요 기능:\n' +
       '• AI 기반 병해 진단\n' +
@@ -265,7 +283,7 @@ const ProfileScreen: React.FC = () => {
       '• 농업인 커뮤니티 Q&A\n' +
       '• 목표 생산량 역분석\n' +
       '• IoT 센서 데이터 융합\n\n' +
-      `문의: ${APP_CONFIG.SUPPORT_EMAIL}`,
+      `문의: ${PROFILE_CONFIG.SUPPORT_EMAIL}`,
       [{ text: '확인' }]
     );
   };
@@ -478,7 +496,7 @@ const ProfileScreen: React.FC = () => {
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            {APP_CONFIG.APP_NAME} v{APP_CONFIG.VERSION}
+            {PROFILE_CONFIG.APP_NAME} v{PROFILE_CONFIG.VERSION}
           </Text>
           <Text style={styles.footerText}>
             © 2025 FarmSense. All rights reserved.

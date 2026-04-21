@@ -52,7 +52,7 @@ const DrawerMenu: React.FC<DrawerContentComponentProps> = ({ navigation }) => {
     { id: 'community', label: '커뮤니티', icon: 'people-outline', screen: 'Community' },
     { id: 'daily_report', label: '일일보고서', icon: 'document-text-outline', screen: 'DailyPrescription' },
     { id: 'todo', label: '오늘의 할일', icon: 'checkbox-outline', screen: 'DailyPrescription' }, // Same screen for now
-    { id: 'sensor', label: '센서데이터', icon: 'hardware-chip-outline', screen: 'FacilityInfo' },
+    { id: 'sensor', label: '센서데이터', icon: 'hardware-chip-outline', screen: 'SensorManage' },
     { id: 'settings', label: '설정', icon: 'settings-outline', screen: 'Settings' },
   ];
 

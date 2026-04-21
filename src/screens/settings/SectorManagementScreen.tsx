@@ -65,16 +65,16 @@ const SectorManagementScreen: React.FC = () => {
             if (farmId) {
                 try {
                     const mapData = await farmmapApi.getFarmMapData(farmId);
-                    // If we have map data and no current region set (or default), move there
                     if (mapData && mapData.center) {
-                        setRegion(prev => ({
-                            ...prev,
+                        mapRef.current?.animateToRegion({
                             latitude: mapData.center.lat,
                             longitude: mapData.center.lon,
-                        }));
+                            latitudeDelta: 0.01,
+                            longitudeDelta: 0.01,
+                        }, 500);
                     }
                 } catch (e) {
-                    // console.log('Failed to load farm map data', e);
+                    // Farm map data 로드 실패 시 현재 위치 사용
                 }
             }
         };
@@ -153,19 +153,16 @@ const SectorManagementScreen: React.FC = () => {
     // Initial Location
     useEffect(() => {
         (async () => {
-            let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                return;
-            }
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') return;
 
-            let location = await Location.getCurrentPositionAsync({});
-            // Only set if we haven't loaded from map data yet? 
-            // Actually map data load might be slower, so this is fine as initial
-            setRegion(prev => ({
-                ...prev,
+            const location = await Location.getCurrentPositionAsync({});
+            mapRef.current?.animateToRegion({
                 latitude: location.coords.latitude,
                 longitude: location.coords.longitude,
-            }));
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+            }, 500);
         })();
     }, []);
 
@@ -242,19 +239,17 @@ const SectorManagementScreen: React.FC = () => {
 
     return (
         <View style={styles.container}>
-            {/* Map is Full Screen Absolute */}
+            {/* Map is Full Screen */}
             <MapView
                 ref={mapRef}
                 provider={PROVIDER_GOOGLE}
-                style={StyleSheet.absoluteFill}
-                region={region}
+                style={styles.map}
+                initialRegion={region}
                 mapType={mapType}
                 showsUserLocation
-                showsMyLocationButton={false} // Custom button if needed, or rely on usage
+                showsMyLocationButton={false}
                 onPress={handleMapPress}
-                onRegionChangeComplete={(r) => {
-                    // Optional: Update region state if you want to track it
-                }}
+                onMapReady={() => console.log('✅ [SectorManage] 지도 로딩 완료')}
             >
                 {/* Existing Sectors */}
                 {sectors.map(sector => (
@@ -520,6 +515,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F3F4F6',
+    },
+    map: {
+        ...StyleSheet.absoluteFillObject,
     },
     // Top Bar
     topBar: {

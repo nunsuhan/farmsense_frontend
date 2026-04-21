@@ -8,7 +8,7 @@ import { PostDetailScreen } from '../screens/community/PostDetailScreen';
 import QnAScreen from '../screens/QnAScreen';
 import DailyPrescriptionScreen from '../screens/DailyPrescriptionScreen';
 import GrowthDiaryScreen from '../screens/GrowthDiaryScreen';
-import FacilityInfoScreen from '../screens/FacilityInfoScreen';
+// FacilityInfoScreen 삭제됨 - 농장기본정보(FarmBasicInfoScreen)로 통합
 import ReverseAnalysisScreen from '../screens/ReverseAnalysisScreen';
 import PesticideRecordScreen from '../screens/PesticideRecordScreen';
 import CanopyCameraScreen from '../screens/CanopyCameraScreen';
@@ -32,7 +32,6 @@ export const HomeStackNavigator = () => {
             <HomeStack.Screen name="QnAScreen" component={QnAScreen} />
             <HomeStack.Screen name="DailyPrescription" component={DailyPrescriptionScreen} />
             <HomeStack.Screen name="GrowthDiary" component={GrowthDiaryScreen} />
-            <HomeStack.Screen name="FacilityInfo" component={FacilityInfoScreen} />
             <HomeStack.Screen name="ReverseAnalysis" component={ReverseAnalysisScreen} />
             <HomeStack.Screen name="PesticideRecord" component={PesticideRecordScreen} />
             <HomeStack.Screen name="CanopyCamera" component={CanopyCameraScreen} />

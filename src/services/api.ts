@@ -58,7 +58,7 @@ apiClient.interceptors.request.use(
     console.log('[API] URL:', (config.baseURL || '') + (config.url || ''));
 
     // 로그인, 회원가입, 토큰갱신은 토큰 제외
-    const publicEndpoints = ['/auth/login/', '/auth/register/', '/auth/refresh/'];
+    const publicEndpoints = ['/auth/login/', '/auth/register/', '/auth/refresh/', '/v1/auth/phone/send/', '/v1/auth/phone/verify/'];
     const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));
 
     if (!isPublicEndpoint) {

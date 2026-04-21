@@ -1,17 +1,16 @@
 // API Configuration
-// 개발 환경에서는 로컬 서버(127.0.0.1:8080) 사용
-// 운영 환경에서는 farmsense.kr 사용
-const IS_DEV = process.env.NODE_ENV === 'development' || 
-               process.env.EXPO_PUBLIC_DEV_MODE === 'true' ||
-               typeof __DEV__ !== 'undefined' && __DEV__;
+// 기본값은 프로덕션 URL (api.farmsense.kr)
+// 로컬 개발 서버(127.0.0.1:8080)를 사용하려면 EXPO_PUBLIC_USE_LOCAL=true 환경변수 설정
+// (expo start 시 .env 또는 쉘에서 지정)
+const USE_LOCAL = process.env.EXPO_PUBLIC_USE_LOCAL === 'true';
 
 export const API_CONFIG = {
   // 메인 Django API (인증, 커뮤니티, 센서, 날씨 등)
-  BASE_URL: IS_DEV ? 'http://127.0.0.1:8080/api' : 'https://farmsense.kr/api',
+  BASE_URL: USE_LOCAL ? 'http://127.0.0.1:8080/api' : 'https://api.farmsense.kr/api',
   // RAG 서버 (질의응답)
-  RAG_URL: IS_DEV ? 'http://127.0.0.1:8080/api' : 'https://farmsense.kr/api',
+  RAG_URL: USE_LOCAL ? 'http://127.0.0.1:8080/api' : 'https://api.farmsense.kr/api',
   // 병해 진단 서버 (이미지 분석)
-  DIAGNOSIS_URL: IS_DEV ? 'http://127.0.0.1:8080/api' : 'https://farmsense.kr/api',
+  DIAGNOSIS_URL: USE_LOCAL ? 'http://127.0.0.1:8080/api' : 'https://api.farmsense.kr/api',
   TIMEOUT: 30000,
   ENDPOINTS: {
     DIAGNOSIS: {
@@ -114,4 +113,25 @@ export const APP_CONFIG = {
   APP_NAME: 'FarmSense',
   VERSION: '1.0.0',
   SUPPORT_EMAIL: 'support@farmsense.com',
+};
+
+// 토스페이먼츠 설정
+export const TOSS_CONFIG = {
+  CLIENT_KEY: 'test_ck_Poxy1XQL8R96EXw9Zxg9r7nO5Wml',
+};
+
+// 요금제 설정
+export const PLAN_CONFIG = {
+  MONTHLY_PRICE: 10000,    // 월 10,000원
+  YEARLY_PRICE: 100000,    // 연 100,000원
+  TRIAL_MONTHS: 2,
+};
+
+// 사업자 정보 (카드사 등록 심사 필수 항목)
+export const BUSINESS_INFO = {
+  COMPANY_NAME: '팜센스',                    // 상호명
+  REPRESENTATIVE: '한문수',                  // 대표자명
+  BUSINESS_NUMBER: '646-18-02527',            // 사업자등록번호
+  ADDRESS: '대구시 북구 학남로 60, 704-905 (41417)',  // 사업장 주소
+  PHONE: '070-8064-7956',                    // 유선전화번호
 };

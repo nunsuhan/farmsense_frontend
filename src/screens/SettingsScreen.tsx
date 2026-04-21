@@ -16,6 +16,7 @@ import {
   useFarmId,
   useUser,
 } from '../store/useStore';
+import { BUSINESS_INFO } from '../constants/config';
 
 // 색상 시스템
 const Colors = {
@@ -192,7 +193,7 @@ const SettingsScreen: React.FC = () => {
 
   // 네비게이션 핸들러
   const goToFarmInfo = () => {
-    navigation.navigate('FacilityInfo');
+    navigation.navigate('FarmBasicInfo');
   };
 
   const goToSensorSettings = () => {
@@ -277,7 +278,7 @@ const SettingsScreen: React.FC = () => {
   const showContact = () => {
     Alert.alert(
       '문의하기',
-      '고객센터\n\n📧 이메일: support@farmsense.kr\n📞 전화: 1588-0000\n⏰ 운영시간: 평일 09:00-18:00\n\n문의사항을 남겨주시면\n빠르게 답변드리겠습니다.',
+      `고객센터\n\n📧 이메일: support@farmsense.kr\n📞 전화: ${BUSINESS_INFO.PHONE}\n⏰ 운영시간: 평일 09:00-18:00\n\n문의사항을 남겨주시면\n빠르게 답변드리겠습니다.`,
       [
         { text: '닫기', style: 'cancel' },
         { text: '이메일 보내기', onPress: () => Alert.alert('이메일 앱으로 이동') },
@@ -616,7 +617,18 @@ const SettingsScreen: React.FC = () => {
           />
         </SettingSection>
 
-        {/* 하단 여백 */}
+        {/* 사업자 정보 (카드사 등록 심사 필수) */}
+        <View style={styles.businessFooter}>
+          <Text style={styles.footerLine}>상호: {BUSINESS_INFO.COMPANY_NAME}</Text>
+          <Text style={styles.footerLine}>대표자: {BUSINESS_INFO.REPRESENTATIVE}</Text>
+          {BUSINESS_INFO.BUSINESS_NUMBER ? (
+            <Text style={styles.footerLine}>사업자등록번호: {BUSINESS_INFO.BUSINESS_NUMBER}</Text>
+          ) : null}
+          {BUSINESS_INFO.ADDRESS ? (
+            <Text style={styles.footerLine}>주소: {BUSINESS_INFO.ADDRESS}</Text>
+          ) : null}
+          <Text style={styles.footerLine}>전화: {BUSINESS_INFO.PHONE}</Text>
+        </View>
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -719,6 +731,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textSecondary,
     marginTop: 4,
+  },
+  businessFooter: {
+    marginTop: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  footerLine: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+    lineHeight: 18,
   },
 });
 

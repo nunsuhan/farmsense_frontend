@@ -22,6 +22,7 @@ import { Svg, Path, Line, Text as SvgText } from 'react-native-svg';
 import { useStore } from '../store/useStore';
 import { getCurrentData, formatSensorValue, getSensorStatusColor, getGraphData, getStats, getSensorStatusIcon } from '../services/sensorApi';
 import { avatarApi } from '../services/avatarApi';
+import { API_CONFIG } from '../constants/config';
 import { SensorGraphResponse, SensorStatsResponse } from '../types/api.types';
 import { useFocusEffect } from '@react-navigation/native';
 import { dssApi } from '../services/dssApi';
@@ -365,7 +366,7 @@ const HomeScreen: React.FC = () => {
       if (info && info.avatar_url) {
         const fullUrl = info.avatar_url.startsWith('http')
           ? info.avatar_url
-          : `https://farmsense.kr${info.avatar_url}`;
+          : `${API_CONFIG.BASE_URL.replace('/api', '')}${info.avatar_url}`;
         setAvatarUrl(`${fullUrl}?t=${new Date().getTime()}`);
         setAvatarKey(prev => prev + 1);
       }
