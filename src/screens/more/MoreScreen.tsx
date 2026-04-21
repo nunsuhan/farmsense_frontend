@@ -20,6 +20,24 @@ import { clearTokens } from '../../services/authApi';
 
 const MENU_ITEMS = [
   {
+    id: 'barcode',
+    title: '농약 바코드 스캔',
+    subtitle: '바코드로 농약 정보 + PLS 조회',
+    icon: 'barcode-outline',
+    iconBg: '#DCFCE7',
+    iconColor: '#16A34A',
+    screen: 'BarcodeScanner',
+  },
+  {
+    id: 'receipt',
+    title: '영수증 자동 기입',
+    subtitle: '영수증 사진으로 영농일지 작성',
+    icon: 'receipt-outline',
+    iconBg: '#DBEAFE',
+    iconColor: '#2563EB',
+    screen: 'ReceiptOCR',
+  },
+  {
     id: 'notifications',
     title: '알림 설정',
     subtitle: '병해충 경보, 센서 알림 관리',

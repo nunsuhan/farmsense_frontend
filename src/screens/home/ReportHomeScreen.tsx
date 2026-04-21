@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, shadows } from '../../theme/colors';
 import { useStore } from '../../store/useStore';
 import apiClient from '../../services/api';
+import AskReportBar from '../../components/home/AskReportBar';
 
 // 카드 타입별 색상
 const CARD_COLORS: Record<string, { bg: string; border: string; icon: string }> = {
@@ -188,6 +189,8 @@ const ReportHomeScreen = () => {
             <Text style={styles.emptySubtitle}>센서 데이터가 쌓이면 보고서가 자동 생성됩니다.</Text>
           </View>
         )}
+
+        {!loading && <AskReportBar reportContext={report} />}
 
         <View style={{ height: 30 }} />
       </ScrollView>
