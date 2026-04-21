@@ -116,10 +116,8 @@ export type MoreStackParamList = {
   Terms: undefined;
   Profile: undefined;
   NotificationList: undefined;
-  Community: undefined;
   Consultation: undefined;
   PrivacyPolicy: undefined;
-  PostWrite: { topicId?: string };
   TopicDetail: { topic: any };
 };
 

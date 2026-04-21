@@ -85,18 +85,6 @@ const SimpleMenu: React.FC<SimpleMenuProps> = ({ visible, onClose }) => {
       ]
     },
     {
-      id: 'community',
-      label: '커뮤니티',
-      icon: 'people-outline',
-      subItems: [
-        { id: 'community-free', label: '자유', icon: 'chatbox-outline', screen: 'Community', params: { category: 'free' } },
-        { id: 'community-show', label: '자랑', icon: 'trophy-outline', screen: 'Community', params: { category: 'show' } },
-        { id: 'community-question', label: '질문', icon: 'help-circle-outline', screen: 'Community', params: { category: 'question' } },
-        { id: 'community-tip', label: '팁', icon: 'bulb-outline', screen: 'Community', params: { category: 'tip' } },
-        { id: 'community-market', label: '장터', icon: 'cart-outline', screen: 'Community', params: { category: 'market' } },
-      ]
-    },
-    {
       id: 'settings',
       label: '설정',
       icon: 'settings-outline',

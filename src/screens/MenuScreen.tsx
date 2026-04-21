@@ -101,19 +101,16 @@ const MenuScreen: React.FC = () => {
                     <MenuItem title="AI 상담" icon="chat-processing-outline" onPress={() => { closeMenu(); navigation.navigate('MainTab', { screen: 'HomeTab', params: { screen: 'QnAScreen' } }); }} isDark={false} />
 
                     {/* 3. 영농일지 (Dark) */}
-                    <MenuItem title="영농일지" icon="calendar-text" onPress={() => { closeMenu(); navigation.navigate('MainTab', { screen: 'FarmingLog' }); }} isDark={true} />
+                    <MenuItem title="영농일지" icon="calendar-text" onPress={() => { closeMenu(); navigation.navigate('MainTab', { screen: 'LogTab' }); }} isDark={true} />
 
                     {/* 4. 일일 보고서 (Light) */}
                     <MenuItem title="일일 보고서" icon="file-chart-outline" onPress={() => { closeMenu(); navigation.navigate('MainTab', { screen: 'HomeTab', params: { screen: 'DailyPrescription' } }); }} isDark={false} />
 
-                    {/* 5. 커뮤니티 (Dark) */}
-                    <MenuItem title="커뮤니티" icon="account-group-outline" onPress={() => { closeMenu(); navigation.navigate('MainTab', { screen: 'Community' }); }} isDark={true} />
+                    {/* 5. 설정 (Dark) */}
+                    <MenuItem title="설정" icon="cog-outline" onPress={() => { closeMenu(); navigation.navigate('MainTab', { screen: 'MyFarmTab' }); }} isDark={true} />
 
-                    {/* 6. 설정 (Light) */}
-                    <MenuItem title="설정" icon="cog-outline" onPress={() => { closeMenu(); navigation.navigate('MainTab', { screen: 'MyFarm', params: { screen: 'Settings' } }); }} isDark={false} />
-
-                    {/* 7. 앱 정보 (Dark) */}
-                    <MenuItem title="앱 정보" icon="information-outline" onPress={() => { closeMenu(); navigation.navigate('MainTab', { screen: 'MyFarm', params: { screen: 'AppInfo' } }); }} isDark={true} />
+                    {/* 6. 앱 정보 (Light) */}
+                    <MenuItem title="앱 정보" icon="information-outline" onPress={() => { closeMenu(); navigation.navigate('AppInfo'); }} isDark={false} />
 
                     {/* Login / Logout */}
                     {user ? (

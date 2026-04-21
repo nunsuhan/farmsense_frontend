@@ -4,7 +4,6 @@ import HomeRouter from '../screens/home/HomeRouter';
 import { PesticideManagementScreen } from '../screens/pesticide/PesticideManagementScreen';
 import FarmMapScreen from '../screens/FarmMapScreen';
 import FarmMapAdvancedScreen from '../screens/FarmMapAdvancedScreen';
-import { PostDetailScreen } from '../screens/community/PostDetailScreen';
 import QnAScreen from '../screens/QnAScreen';
 import DailyPrescriptionScreen from '../screens/DailyPrescriptionScreen';
 import GrowthDiaryScreen from '../screens/GrowthDiaryScreen';
@@ -28,7 +27,6 @@ export const HomeStackNavigator = () => {
             <HomeStack.Screen name="PesticideManagement" component={PesticideManagementScreen} />
             <HomeStack.Screen name="FarmMap" component={FarmMapScreen} />
             <HomeStack.Screen name="FarmMapAdvanced" component={FarmMapAdvancedScreen} />
-            <HomeStack.Screen name="PostDetail" component={PostDetailScreen} />
             <HomeStack.Screen name="QnAScreen" component={QnAScreen} />
             <HomeStack.Screen name="DailyPrescription" component={DailyPrescriptionScreen} />
             <HomeStack.Screen name="GrowthDiary" component={GrowthDiaryScreen} />

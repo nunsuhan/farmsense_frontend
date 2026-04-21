@@ -25,8 +25,6 @@ import DiagnosisScreen from '../screens/DiagnosisScreen';
 import DiagnosisResultScreen from '../screens/diagnosis/DiagnosisResultScreen';
 import QnAScreen from '../screens/QnAScreen';
 import { LogWriteScreen } from '../screens/farming-log/LogWriteScreen';
-import { PostWriteScreen } from '../screens/community/PostWriteScreen';
-import { PostDetailScreen } from '../screens/community/PostDetailScreen';
 import { PesticideManagementScreen } from '../screens/pesticide/PesticideManagementScreen';
 import BarcodeScannerScreen from '../screens/pesticide/BarcodeScannerScreen';
 import ReceiptOCRScreen from '../screens/fieldbook/ReceiptOCRScreen';
@@ -157,7 +155,6 @@ export const RootNavigator = () => {
                             <Stack.Screen name="Diagnosis" component={DiagnosisScreen} />
                             <Stack.Screen name="DiagnosisResult" component={DiagnosisResultScreen} />
                             <Stack.Screen name="LogWrite" component={LogWriteScreen} />
-                            <Stack.Screen name="PostWrite" component={PostWriteScreen} />
                         </Stack.Group>
                     </Stack.Group>
                 ) : (

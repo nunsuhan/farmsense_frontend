@@ -163,15 +163,6 @@ const HomeScreen = () => {
       action: () => navigation.navigate('LogTab'),
     },
     {
-      id: 'community',
-      title: '커뮤니티',
-      subtitle: '서포한 커뮤니티',
-      icon: MENU_ICONS.community,
-      cardBg: '#DDE8D0',
-      darkCardBg: '#2A3A2E',
-      action: () => navigateToTab('MoreTab', 'Community'),
-    },
-    {
       id: 'farm',
       title: '농장설정',
       subtitle: '농장설정 상정',

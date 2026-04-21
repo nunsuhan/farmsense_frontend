@@ -81,11 +81,10 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
           }
         };
 
-        let iconName: any = 'people-outline';
-        let label = '커뮤니티';
+        let iconName: any = 'leaf-outline';
+        let label = '내 농장';
 
-        if (route.name === 'Community') { iconName = isFocused ? 'people' : 'people-outline'; label = '커뮤니티'; }
-        else if (route.name === 'MyFarm') { iconName = isFocused ? 'leaf' : 'leaf-outline'; label = '내 농장'; }
+        if (route.name === 'MyFarm') { iconName = isFocused ? 'leaf' : 'leaf-outline'; label = '내 농장'; }
 
 
         return (

@@ -33,9 +33,7 @@ const DrawerMenu: React.FC<DrawerContentComponentProps> = ({ navigation }) => {
 
     // 탭 네비게이션 처리
     if (item.screen === 'FarmingLog') {
-      navigation.navigate('MainTab', { screen: 'FarmingLog' });
-    } else if (item.screen === 'Community') {
-      navigation.navigate('MainTab', { screen: 'Community' });
+      navigation.navigate('MainTab', { screen: 'LogTab' });
     } else if (item.screen === 'Home') {
       navigation.navigate('MainTab', { screen: 'HomeTab' });
     } else {
@@ -44,14 +42,13 @@ const DrawerMenu: React.FC<DrawerContentComponentProps> = ({ navigation }) => {
     }
   };
 
-  // 요청된 메뉴 구조 (8개 항목)
+  // 메뉴 구조 (커뮤니티 제거)
   const menuItems: MenuItem[] = [
     { id: 'diagnosis', label: '병해진단', icon: 'camera-outline', screen: 'SmartLens' },
     { id: 'ai_consult', label: 'AI 상담', icon: 'chatbubbles-outline', screen: 'QnAScreen' },
     { id: 'farming_log', label: '영농일지', icon: 'calendar-outline', screen: 'FarmingLog' },
-    { id: 'community', label: '커뮤니티', icon: 'people-outline', screen: 'Community' },
     { id: 'daily_report', label: '일일보고서', icon: 'document-text-outline', screen: 'DailyPrescription' },
-    { id: 'todo', label: '오늘의 할일', icon: 'checkbox-outline', screen: 'DailyPrescription' }, // Same screen for now
+    { id: 'todo', label: '오늘의 할일', icon: 'checkbox-outline', screen: 'DailyPrescription' },
     { id: 'sensor', label: '센서데이터', icon: 'hardware-chip-outline', screen: 'SensorManage' },
     { id: 'settings', label: '설정', icon: 'settings-outline', screen: 'Settings' },
   ];
