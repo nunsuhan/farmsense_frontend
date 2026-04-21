@@ -47,8 +47,8 @@ const AskReportBar: React.FC<Props> = ({ reportContext }) => {
       Alert.alert('알림', '질문을 입력하거나 사진을 첨부해주세요.');
       return;
     }
-    // AI상담 탭으로 이동하면서 질문/이미지/보고서 컨텍스트 전달
-    navigation.navigate('ConsultTab', {
+    // HomeStack 내부의 QnAScreen으로 직접 이동 (prefill 즉시 적용)
+    navigation.navigate('QnAScreen', {
       initialQuestion: trimmed,
       initialImage: imageUri,
       reportContext,

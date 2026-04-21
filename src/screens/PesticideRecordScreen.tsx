@@ -9,7 +9,7 @@
  * - 기록 저장
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -25,7 +25,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ScreenWrapper from '../components/common/ScreenWrapper';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { FarmSenseColors, softShadow } from '../theme/colors';
 import { pesticideApi } from '../services/pesticideApi';
 import { useFarmId } from '../store/useStore';
@@ -43,6 +43,7 @@ interface PesticideSearchResult {
 
 const PesticideRecordScreen: React.FC = () => {
   const navigation = useNavigation();
+  const route = useRoute<any>();
   const farmId = useFarmId() || 'TEST';
 
   // 상태
@@ -54,6 +55,28 @@ const PesticideRecordScreen: React.FC = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // 바코드 스캔 prefill (BarcodeScannerScreen에서 전달)
+  useEffect(() => {
+    const prefill = route.params?.prefill;
+    const barcode = route.params?.barcode;
+    if (!prefill || selectedPesticide) return;
+    const preSelected: PesticideSearchResult = {
+      pesti_code: barcode || prefill.active_ingredient || 'SCANNED',
+      pesticide_name: prefill.name || '이름 없음',
+      brand_name: prefill.name || '',
+      crop_name: '포도',
+      target_disease: '',
+      phi_days: 0,
+      company_name: prefill.manufacturer || '',
+      usage: prefill.active_ingredient || '',
+    };
+    setSelectedPesticide(preSelected);
+    if (prefill.name) setSearchQuery(prefill.name);
+    if (prefill.pls?.message) {
+      setNotes((prev) => (prev ? prev + '\n' : '') + `[PLS] ${prefill.pls.message}`);
+    }
+  }, [route.params]);
 
   // 농약 검색
   const handleSearch = async () => {

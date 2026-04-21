@@ -14,6 +14,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRoute } from '@react-navigation/native';
 import Voice, { SpeechResultsEvent, SpeechErrorEvent } from '@react-native-voice/voice';
 import ragApi from '../services/ragApi';
 import { useStore } from '../store/useStore';
@@ -26,12 +27,18 @@ interface Message {
 }
 
 const QnAScreen: React.FC = () => {
+  const route = useRoute<any>();
+  const initialQuestion: string | undefined = route.params?.initialQuestion;
+  const initialImage: string | undefined = route.params?.initialImage;
+  const reportContext: any = route.params?.reportContext;
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [partialText, setPartialText] = useState('');
   const flatListRef = useRef<FlatList>(null);
+  const autoSentRef = useRef(false);
 
   const farmInfo = useStore(state => state.farmInfo);
 
@@ -77,6 +84,61 @@ const QnAScreen: React.FC = () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
   }, []);
+
+  // 외부에서 전달된 질문/이미지를 초기 메시지로 자동 전송
+  useEffect(() => {
+    if (autoSentRef.current) return;
+    if (!initialQuestion && !initialImage) return;
+    autoSentRef.current = true;
+
+    (async () => {
+      const question = (initialQuestion || '').trim();
+      // 이미지가 있을 때는 시스템 안내 메시지만 먼저 삽입 (RAG는 텍스트 전용)
+      if (initialImage) {
+        const noticeText = question
+          ? `${question}\n\n[사진 첨부: 현재 AI는 텍스트 기반으로 응답합니다. 이미지 분석은 진단 탭을 이용해 주세요.]`
+          : '[사진 첨부: 현재 AI는 텍스트 기반으로 응답합니다. 이미지 분석은 진단 탭을 이용해 주세요.]';
+        const notice: Message = {
+          id: Date.now().toString(),
+          role: 'user',
+          content: noticeText,
+        };
+        setMessages((prev) => [...prev, notice]);
+      }
+      if (question) {
+        // 보고서 컨텍스트가 있으면 질문 앞에 간단 요약 붙여 전송
+        let payload = question;
+        if (reportContext?.cards && Array.isArray(reportContext.cards)) {
+          const summary = reportContext.cards
+            .slice(0, 3)
+            .map((c: any) => `- ${c.title}: ${c.body}`)
+            .join('\n');
+          if (summary) {
+            payload = `[오늘의 보고서]\n${summary}\n\n[질문] ${question}`;
+          }
+        }
+        setIsLoading(true);
+        try {
+          const response = await ragApi.chat(payload, farmInfo);
+          const assistant: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: response.answer || '답변을 가져올 수 없습니다.',
+          };
+          setMessages((prev) => [...prev, assistant]);
+        } catch {
+          const err: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+          };
+          setMessages((prev) => [...prev, err]);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    })();
+  }, [initialQuestion, initialImage, reportContext, farmInfo]);
 
   const toggleListening = async () => {
     try {

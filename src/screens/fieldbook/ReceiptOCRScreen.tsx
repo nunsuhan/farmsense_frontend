@@ -188,7 +188,7 @@ const ReceiptOCRScreen: React.FC = () => {
             <TouchableOpacity
               style={[styles.primaryBtn, { marginTop: 20 }]}
               onPress={() => {
-                navigation.navigate('GrowthDiary', { receiptOCR: result });
+                navigation.navigate('LogWrite', { receiptOCR: result });
               }}
             >
               <Text style={styles.primaryBtnText}>영농일지에 저장</Text>

@@ -10,7 +10,7 @@ import {
     Alert,
     Keyboard,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/common/ScreenWrapper';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,11 +18,38 @@ import Voice, { SpeechResultsEvent, SpeechErrorEvent } from '@react-native-voice
 
 export const LogWriteScreen: React.FC = () => {
     const navigation = useNavigation();
+    const route = useRoute<any>();
     const [date] = useState(new Date());
     const [images, setImages] = useState<string[]>([]);
     const [memo, setMemo] = useState('');
     const [isListening, setIsListening] = useState(false);
     const [partialText, setPartialText] = useState('');
+
+    // 영수증 OCR 결과 prefill (ReceiptOCRScreen에서 전달)
+    useEffect(() => {
+        const ocr = route.params?.receiptOCR;
+        if (!ocr) return;
+        const lines: string[] = [];
+        if (ocr.shop_name) lines.push(`[상점] ${ocr.shop_name}`);
+        if (ocr.date) lines.push(`[영수증 날짜] ${ocr.date}`);
+        if (ocr.total_amount !== undefined) {
+            lines.push(`[총액] ${Number(ocr.total_amount).toLocaleString()}원`);
+        }
+        if (Array.isArray(ocr.items) && ocr.items.length > 0) {
+            lines.push('[품목]');
+            ocr.items.forEach((it: any) => {
+                const parts = [
+                    it.name,
+                    it.quantity,
+                    it.price !== undefined ? `${Number(it.price).toLocaleString()}원` : undefined,
+                ].filter(Boolean);
+                lines.push(`- ${parts.join(' · ')}`);
+            });
+        }
+        if (lines.length > 0) {
+            setMemo((prev) => (prev ? prev + '\n\n' : '') + lines.join('\n'));
+        }
+    }, [route.params?.receiptOCR]);
 
     useEffect(() => {
         Voice.onSpeechStart = () => {
