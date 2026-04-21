@@ -92,7 +92,7 @@ const NotificationSettingsScreen: React.FC = () => {
   return (
     <ScreenWrapper
       title="알림설정"
-      showMenu={true}
+      showMenu={false}
       headerRight={
         <TouchableOpacity onPress={openHelp} style={{ padding: 4 }}>
           <MaterialCommunityIcons name="help-circle-outline" size={24} color="#6B7280" />

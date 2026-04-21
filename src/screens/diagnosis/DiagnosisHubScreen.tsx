@@ -1,6 +1,6 @@
 /**
- * v2.1 DiagnosisHubScreen - 진단 허브
- * 3가지: 병해진단(촬영), 성장기록, 캐노피
+ * DiagnosisHubScreen - 진단 허브
+ * 병해진단 카메라 하나로 통합 (차폐율, 성장일지는 SmartScanner 탭 내부에서 제공)
  */
 import React from 'react';
 import {
@@ -21,30 +21,12 @@ const DiagnosisHubScreen = () => {
   const CARDS = [
     {
       id: 'camera',
-      title: '병해 진단 촬영',
-      subtitle: '포도 잎·과일을 촬영하여 AI가 병해를 감별합니다',
+      title: '병해 진단',
+      subtitle: '포도 잎·과일 촬영으로 AI가 병해를 감별합니다. 차폐율·성장기록도 함께 지원합니다.',
       icon: 'camera',
       iconColor: '#EF4444',
       bgColor: '#FEF2F2',
-      screen: 'Diagnosis',
-    },
-    {
-      id: 'growth',
-      title: '성장 기록',
-      subtitle: '생육 상태를 촬영하고 기록합니다. 이상 발견 시 보고서가 자동 생성됩니다.',
-      icon: 'trending-up',
-      iconColor: '#10B981',
-      bgColor: '#ECFDF5',
-      screen: 'GrowthDiary',
-    },
-    {
-      id: 'canopy',
-      title: '캐노피 분석',
-      subtitle: '나무 윗부분을 촬영하여 수세와 엽면적을 분석합니다',
-      icon: 'leaf',
-      iconColor: '#8B5CF6',
-      bgColor: '#F5F3FF',
-      screen: 'CanopyCamera',
+      screen: 'SmartLens',
     },
   ];
 

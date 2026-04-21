@@ -60,7 +60,7 @@ const HelpScreen: React.FC = () => {
     }, [search, activeCategory]);
 
     return (
-        <ScreenWrapper title="도움말" showBack showMenu={true}>
+        <ScreenWrapper title="도움말" showBack showMenu={false}>
             {/* Search Bar */}
             <View style={styles.searchContainer}>
                 <View style={styles.searchBox}>

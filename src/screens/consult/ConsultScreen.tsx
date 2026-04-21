@@ -26,7 +26,7 @@ const ConsultScreen = () => {
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         <TouchableOpacity
           style={styles.card}
-          onPress={() => navigation.navigate('QnAScreen')}
+          onPress={() => navigation.navigate('HomeTab', { screen: 'QnAScreen' })}
           activeOpacity={0.7}
         >
           <View style={[styles.iconWrap, { backgroundColor: '#EDE9FE' }]}>
@@ -36,23 +36,6 @@ const ConsultScreen = () => {
             <Text style={styles.cardTitle}>AI 재배 상담</Text>
             <Text style={styles.cardSubtitle}>
               병해충, 영양 관리, 환경 제어 등 재배 관련 질문을 AI에게 물어보세요
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={22} color={colors.textDisabled} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => navigation.navigate('ExpertProfile')}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.iconWrap, { backgroundColor: '#DBEAFE' }]}>
-            <Ionicons name="people" size={32} color="#3B82F6" />
-          </View>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>전문가 상담</Text>
-            <Text style={styles.cardSubtitle}>
-              지역 농업기술센터 전문가에게 1:1 상담을 요청하세요
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={22} color={colors.textDisabled} />

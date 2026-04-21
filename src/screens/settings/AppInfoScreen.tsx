@@ -16,7 +16,7 @@ const AppInfoScreen: React.FC = () => {
     ];
 
     return (
-        <ScreenWrapper title="앱 정보" showBack showMenu={true}>
+        <ScreenWrapper title="앱 정보" showBack showMenu={false}>
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 <View style={styles.logoSection}>
                     <View style={styles.logoPlaceholder}>

@@ -288,7 +288,7 @@ const GrowthDiaryScreen = () => {
   );
 
   return (
-    <ScreenWrapper title="성장 일지" showMenu={true}>
+    <ScreenWrapper title="성장 일지" showMenu={false}>
       {/* 상단 정보 */}
       <View style={styles.header}>
         <View style={styles.statsRow}>

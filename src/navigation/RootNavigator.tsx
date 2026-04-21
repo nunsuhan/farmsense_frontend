@@ -114,6 +114,9 @@ export const RootNavigator = () => {
                         <Stack.Screen name="PesticideManagement" component={PesticideManagementScreen} />
                         <Stack.Screen name="BarcodeScanner" component={BarcodeScannerScreen} />
                         <Stack.Screen name="ReceiptOCR" component={ReceiptOCRScreen} />
+                        <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+                        <Stack.Screen name="Help" component={HelpScreen} />
+                        <Stack.Screen name="AppInfo" component={AppInfoScreen} />
                         <Stack.Screen name="HarvestPrediction" component={HarvestPredictionScreen} />
                         <Stack.Screen name="Prevention" component={PreventionScreen} />
                         <Stack.Screen name="DiagnosisHistory" component={DiagnosisHistoryScreen} />
