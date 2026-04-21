@@ -17,6 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { colors } from '../../theme/colors';
 import { useStore } from '../../store/useStore';
 import { clearTokens } from '../../services/authApi';
+import { clearCachedConversationId } from '../../services/ragApi';
 
 const MENU_ITEMS = [
   {
@@ -87,6 +88,7 @@ const MoreScreen = () => {
         style: 'destructive',
         onPress: async () => {
           await clearTokens();
+          await clearCachedConversationId();
           await setUser(null);
           navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         },

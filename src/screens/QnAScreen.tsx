@@ -16,7 +16,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute } from '@react-navigation/native';
 import Voice, { SpeechResultsEvent, SpeechErrorEvent } from '@react-native-voice/voice';
-import ragApi from '../services/ragApi';
+import ragApi, { fetchMyConversation, ensureConversationId } from '../services/ragApi';
 import { useStore } from '../store/useStore';
 import ScreenWrapper from '../components/common/ScreenWrapper';
 
@@ -83,6 +83,28 @@ const QnAScreen: React.FC = () => {
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
+  }, []);
+
+  // 마운트 시 서버에서 내 대화 기록 복원 (앱 재설치 또는 첫 진입 시 AsyncStorage 없음 대비)
+  useEffect(() => {
+    (async () => {
+      try {
+        const conv = await fetchMyConversation();
+        if (conv && Array.isArray(conv.recent_messages) && conv.recent_messages.length > 0) {
+          const restored: Message[] = conv.recent_messages.map((m, i) => ({
+            id: `${conv.conversation_id}-${i}`,
+            role: (m.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
+            content: m.content || '',
+          }));
+          setMessages((prev) => (prev.length === 0 ? restored : prev));
+        } else {
+          // 없으면 캐시만 확보 (다음 질문 시 conversation_id 전달용)
+          await ensureConversationId();
+        }
+      } catch (e) {
+        console.log('[QnAScreen] conversation 복원 실패', e);
+      }
+    })();
   }, []);
 
   // 외부에서 전달된 질문/이미지를 초기 메시지로 자동 전송

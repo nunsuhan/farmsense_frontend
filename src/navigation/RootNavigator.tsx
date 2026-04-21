@@ -28,6 +28,7 @@ import { LogWriteScreen } from '../screens/farming-log/LogWriteScreen';
 import { PesticideManagementScreen } from '../screens/pesticide/PesticideManagementScreen';
 import BarcodeScannerScreen from '../screens/pesticide/BarcodeScannerScreen';
 import ReceiptOCRScreen from '../screens/fieldbook/ReceiptOCRScreen';
+import TrialApplicationScreen from '../screens/myfarm/TrialApplicationScreen';
 import DailyPrescriptionScreen from '../screens/DailyPrescriptionScreen';
 import GrowthDiaryScreen from '../screens/GrowthDiaryScreen';
 import FarmMapScreen from '../screens/FarmMapScreen';
@@ -115,6 +116,7 @@ export const RootNavigator = () => {
                         <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
                         <Stack.Screen name="Help" component={HelpScreen} />
                         <Stack.Screen name="AppInfo" component={AppInfoScreen} />
+                        <Stack.Screen name="TrialApplication" component={TrialApplicationScreen} />
                         <Stack.Screen name="HarvestPrediction" component={HarvestPredictionScreen} />
                         <Stack.Screen name="Prevention" component={PreventionScreen} />
                         <Stack.Screen name="DiagnosisHistory" component={DiagnosisHistoryScreen} />
