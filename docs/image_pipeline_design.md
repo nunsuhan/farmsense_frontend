@@ -1,15 +1,15 @@
-# FarmSense 이미지 분석 파이프라인 재설계
+# FarmSense 이미지 분석 파이프라인 재설계 (v2)
 
-**작성일**: 2026-04-22
-**작성 배경**: "즉시 병해진단" 독립 기능 폐기 + 성장일지 중심 자동 분석 구조로 이관
+**작성일**: 2026-04-22 (v1) / **개정**: 2026-04-22 (v2)
+**개정 사유**: 발달단계 AI 모델 부재 확인 + 사용자 승인 사항 반영 (UX/스코프/비용)
 
 ---
 
-## 3줄 요약 (사용자 승인 필요 핵심)
+## 3줄 요약 (승인 완료)
 
-1. **자산은 이미 충분함**: 10-class 병해 모델(2-Stage EfficientNet) + 29-trait Claude Vision + 규칙 기반 BBCH 23단계 + LAI→수확량 예측. 조립만 하면 됨.
-2. **제안 파이프라인**: 성장일지 사진 업로드 → (Stage 0 품질 게이트 → Stage 1 이미지 타입/BBCH 추정 → Stage 2A 로컬 병해 10클래스 → Stage 2B 선택적 Claude Vision 29-trait) → Stage 3 교차검증(휴면기 노균 기각 등) → Stage 4 DB 저장 + 시계열 비교 + 알림.
-3. **승인 필요**: ① "즉시진단" 카드 완전 제거 / "건강 체크" 리네이밍 여부, ② Phase 1 스코프(Stage 0/1/2A만 출시 전, Claude Vision은 Phase 2로 미루기), ③ Claude Vision 일일 호출 한도 정책 (현재 **비용 제어 로직 없음**).
+1. **자산 재조립**: 10-class 병해 모델 + 29-trait Claude Vision (실행 코드 완비) + **GDD 기반 BBCH 23단계 규칙 엔진**(발달단계 AI 모델 없음을 확인) + LAI→수확량 예측. 조립만 하면 됨.
+2. **Phase 1 파이프라인**: 성장일지 업로드 → Stage 0 품질 게이트 → **Stage 1 GDD 컨텍스트 주입** → Stage 2A 로컬 10-class → **Stage 2B Claude Vision 29-trait (요금제 한도 내)** → Stage 3 교차검증(GDD vs Vision) → Stage 4 DB 저장 + 시계열 + 알림.
+3. **승인 반영**: 진단 탭=팜닥터 전체 확정, "진단"→"건강 체크" 리네이밍, Vision 요금제별 한도(월1만=주3회/연10만=매일), 긴급 트리거 일1회, 월 하드 한도 $1,500 (또는 유저별 한도 방식 — 아래 4.3 참조).
 
 ---
 
@@ -115,111 +115,168 @@ FARMSENSE_BACKEND_BRIEFING.md · FRONTEND_API_GUIDE.md
 │    └─→ POST /api/fieldbook/entries/ (Phase B 신규)               │
 └───────────────────┬─────────────────────────────────────────────┘
                     │
-      ┌─────────────▼─────────────┐
-      │ Stage 0: 품질 게이트       │
-      │ - 이미지 크기/포맷 검증     │
-      │ - image_type 추정           │
-      │   (Claude Vision 또는      │
-      │    간이 CNN)                │
-      │ - 'equipment/farmlog' 이면 │
-      │   비식물로 분류 → 분석 스킵 │
-      │   + "식물 사진이 아닙니다"  │
-      └─────────────┬─────────────┘
+      ┌─────────────▼───────────────┐
+      │ Stage 0: 품질 게이트          │
+      │ - 파일 크기/포맷 검증          │
+      │ - Vision image_type 판정       │
+      │   (equipment/farmlog → 비식물) │
+      │ - 비식물이면 Stage 1~3 스킵    │
+      │   메모만 저장                  │
+      └─────────────┬───────────────┘
                     │
-      ┌─────────────▼─────────────┐
-      │ Stage 1: 발달단계 추정      │
-      │ A) Farm.budbreak_date +     │
-      │    일평균 GDD 누적 →        │
-      │    BBCHStage 규칙 (기본값)  │
-      │ B) Claude Vision            │
-      │    bbch_estimate trait      │
-      │    (검증용, 차이 시 재확인) │
-      └─────────────┬─────────────┘
+      ┌─────────────▼───────────────┐
+      │ Stage 1: GDD 컨텍스트 주입   │
+      │  (AI 발달단계 분류기 없음 —   │
+      │   GDD 규칙 엔진이 정답 역할)  │
+      │                               │
+      │ A) 서버에서 현재 BBCH 계산:   │
+      │    Farm.budbreak_date +       │
+      │    일평균 기온 → GDD 누적 →   │
+      │    BBCHStage 반환 (규칙 정답)  │
+      │                               │
+      │ B) Vision 프롬프트에 컨텍스트 │
+      │    주입:                      │
+      │    "현재 이 농장은 GDD        │
+      │     {gdd}° 누적, BBCH={code} │
+      │     ({korean}) 단계입니다.    │
+      │     이 생육 단계 기준으로     │
+      │     관찰해주세요."             │
+      │                               │
+      │ C) Vision 응답의              │
+      │    bbch_estimate 는 "검증값"  │
+      │    GDD 규칙이 최종 정답       │
+      └─────────────┬───────────────┘
                     │
-      ┌─────────────▼─────────────┐
-      │ Stage 2A: 로컬 병해 체크    │
-      │ diagnoseDisease 호출        │
-      │ ├ 4-class 필터              │
-      │ │  normal: 정상 분기        │
-      │ │  pesticide: 약해 안내     │
-      │ │  physiological: b*로 진입 │
-      │ │  disease: 10-class 정밀   │
-      │ └ 10-class (a11~a15/b4~b7)  │
-      └─────────────┬─────────────┘
+      ┌─────────────▼───────────────┐
+      │ Stage 2A: 로컬 병해 체크      │
+      │ POST /api/diagnosis/hybrid/   │
+      │ ├ 4-class 필터                │
+      │ │  normal / pesticide /       │
+      │ │  physiological / disease    │
+      │ └ 10-class (a11~a15 / b4~b7)  │
+      └─────────────┬───────────────┘
                     │
-      ┌─────────────▼─────────────┐
-      │ Stage 2B: Claude Vision    │
-      │   (선택적 / 트리거 기반)   │
-      │ 트리거 조건:                │
-      │  - 10-class confidence<0.6 │
-      │  - 주간 1회 상세 모니터링   │
-      │  - 사용자 수동 "상세 분석"  │
-      │  - 유료 플랜 사용자         │
-      │ 29-trait 전수 추출          │
-      └─────────────┬─────────────┘
+      ┌─────────────▼───────────────┐
+      │ Stage 2B: Claude Vision       │
+      │   (Phase 1 포함 — MVP 완성)   │
+      │                               │
+      │ 실행 조건:                    │
+      │  1) 요금제 한도 내 (유저별)    │
+      │  2) OR confidence<0.6 트리거  │
+      │     (긴급, 한도 무관 일 1회)   │
+      │                               │
+      │ 프롬프트에 Stage 1 BBCH       │
+      │ 컨텍스트 포함                 │
+      │ → 29 trait JSON 추출          │
+      └─────────────┬───────────────┘
                     │
-      ┌─────────────▼─────────────┐
-      │ Stage 3: 교차검증 + 종합   │
-      │ 생태 불가능 케이스 기각:    │
-      │  - DORMANCY → 노균 기각     │
-      │  - FLOWERING 전 → 탄저 낮춤 │
-      │  - 잎 closeup → 과실 병해   │
-      │    기각                     │
-      │ local vs vision 합의 계산   │
-      │ BBCH vs GDD 차이 알림        │
-      └─────────────┬─────────────┘
+      ┌─────────────▼───────────────┐
+      │ Stage 3: GDD vs Vision 교차  │
+      │ R1. GDD=DORMANCY이면 병해    │
+      │     신뢰도 × 0.2              │
+      │ R2. Vision_BBCH와 GDD_BBCH   │
+      │     차이 2단계 이상 → 이상    │
+      │     로그 + 사용자 확인 제안    │
+      │ R3. Vision "꽃" 감지          │
+      │     + GDD=휴면기 → 기각       │
+      │     (생태 불가능)              │
+      │ R4. Vision "수확기 과실" +    │
+      │     GDD=개화기 → 기각         │
+      │ R5. image_type=leaf_closeup   │
+      │     + diagnosis=b6열과 → 기각 │
+      │ R6. local_disease vs vision_  │
+      │     disease_type 충돌 → 둘    │
+      │     다 표시 + 재촬영 안내      │
+      └─────────────┬───────────────┘
                     │
-      ┌─────────────▼─────────────┐
-      │ Stage 4: DB 저장 + 알림     │
-      │ - FieldBookEntry + Photo    │
-      │ - ImageAnalysisResult       │
-      │   (bbch_estimate, traits,   │
-      │    diagnosis, severity,     │
-      │    cei_at_capture)          │
-      │ - 시계열 비교:              │
-      │   전일 대비 증가 추세 탐지  │
-      │ - 알림 트리거:              │
-      │   심각도≥중증 + trend↑     │
+      ┌─────────────▼───────────────┐
+      │ Stage 4: DB 저장 + 알림       │
+      │ - FieldBookEntry + Photo      │
+      │ - ImageAnalysisResult:        │
+      │    gdd_bbch (정답)             │
+      │    vision_bbch (검증)          │
+      │    stage_mismatch (bool)       │
+      │    disease_local / severity    │
+      │    traits_json (Vision 29)    │
+      │    cei_at_capture              │
+      │    vision_used (비용 추적)     │
+      │ - 시계열: 전일 대비 severity   │
+      │ - 알림: 중증+추세↑ 또는       │
+      │   stage_mismatch=true         │
       └─────────────────────────────┘
 ```
 
-### 2.2 교차검증 규칙 예시 (Stage 3)
+### 2.2 교차검증 규칙 (Stage 3 — v2: GDD vs Vision 중심)
+
+**GDD 규칙 엔진이 항상 "정답"**, Vision 결과는 검증값/보조값.
 
 | 룰 | 조건 | 조치 |
 |---|---|---|
-| R1. 휴면기 병해 기각 | `BBCH ∈ {DORMANCY, LEAF_FALL}` + `disease ≠ normal` | 진단 신뢰도 × 0.2, "비시즌 진단은 보류" 표기 |
-| R2. 착색기 이전 노균 보류 | `BBCH < VERAISON_BEGIN` + `disease = a12_downy` + `confidence < 0.7` | "착색기 이전 노균 오진 가능성" 경고 |
-| R3. 과실 병해 on 잎 사진 | `image_type ∈ {leaf_closeup}` + `disease ∈ {b5축과, b6열과}` | 기각 + "과실 사진이 필요합니다" |
-| R4. BBCH 역행 차단 | `today BBCH < yesterday BBCH` | Claude 결과 대신 GDD 규칙 채택 |
-| R5. Vision/Local 충돌 | `local_disease != vision_disease_type` + 둘 다 confidence ≥ 0.6 | 양쪽 모두 표시, Stage 2B 재호출 |
-| R6. 비식물 감지 | `image_type ∈ {equipment, farmlog}` | Stage 2 전면 스킵 + 메모로만 저장 |
+| R1. 휴면기 병해 기각 | `gdd_bbch ∈ {DORMANCY, LEAF_FALL, DORMANCY_START}` + `local_disease ≠ normal` | 진단 신뢰도 × 0.2 + "비시즌 진단 보류" 표기 |
+| R2. BBCH 단계 불일치 경고 | `│vision_bbch_code − gdd_bbch_code│ ≥ 2단계` | `stage_mismatch=true` 저장 + "단계 불일치 — 농장 등록일 재확인?" 알림 |
+| R3. Vision "꽃" + GDD=휴면기 | `vision.first_bloom_detected=true` + `gdd_bbch < BUD_BURST` | Vision 기각 (생태 불가능), 재촬영 제안 |
+| R4. Vision "수확기 과실" + GDD=개화기 | `vision.coloring_pct ≥ 50` + `gdd_bbch < VERAISON_BEGIN` | Vision 기각 |
+| R5. 잎 사진에 과실 병해 | `vision.image_type=leaf_closeup` + `local_disease ∈ {b5축과, b6열과}` | 기각 + "과실 사진이 필요합니다" |
+| R6. Local vs Vision 충돌 | `local_disease != vision.disease_type` + 양쪽 `confidence ≥ 0.6` | 둘 다 표시 + "재촬영 권장" 알림 |
+| R7. 비식물 감지 | `vision.image_type ∈ {equipment, farmlog}` | Stage 2 전체 스킵 + 메모만 저장 |
+| R8. 약해 분기 | 4-class filter=`pesticide` | 약해 안내 (Stage 2B 스킵) |
+| R9. 생리장해 분기 | 4-class filter=`physiological` | 10-class b* 클래스로 진입 + "영양/환경 원인 가능성" 안내 |
 
-### 2.3 비용 모델 (Claude Vision)
+### 2.3 비용 모델 (Claude Vision) — v2 승인안
 
-**현재 설정**: `claude-sonnet-4-5`, `max_tokens=1500` (공식 가격 기준 약 $0.003 input + $0.015 output = **~$0.02/호출**).
+**현재 설정**: `claude-sonnet-4-5`, `max_tokens=1500`, 이미지 1장당 ~$0.025/호출 (상한 기준).
 
-| 시나리오 | 일일 호출 | 월 비용 (30일) |
-|---|---|---|
-| 비수기 (10 농가 × 주 1회) | ~1.5 | ~$0.9 |
-| 성장기 (50 농가 × 일 1회) | 50 | ~$30 |
-| 성장기 (500 농가 × 일 1회) | 500 | ~$300 |
-| 성장기 대량 (500 농가 × 일 3회) | 1,500 | ~$900 |
+#### 요금제별 유저 한도 (승인)
 
-**권장 플랜별 한도**:
-- 무료/시범: Claude Vision **OFF** (Stage 2B 스킵, 로컬 모델만)
-- 월 1만원: **주 3회**
-- 연 10만원: **주 7회 (매일)**
-- 이벤트 트리거(심각 병해 의심, confidence<0.6)는 요금제 무관 1일 1회 허용
-- **하드 월 한도**: 기본 $100/월, 초과 시 관리자 알림
-
-### 2.4 우선순위별 구현 단계
-
-| Phase | 스코프 | 범위 | 블로커 |
+| 요금제 | 정기 Vision 호출 | 원가/유저 | 긴급 트리거 |
 |---|---|---|---|
-| **1 (출시 전 필수)** | Stage 0 품질 게이트 + Stage 1 GDD 기반 BBCH + Stage 2A 로컬 10-class + Stage 4 저장 | 서버: `/api/fieldbook/entries/` 신규, Claude Vision은 `image_type`만 최소 사용 (비식물 필터) / 앱: LogWrite 저장 + 결과 카드 UI | Phase B 영농일지 서버 엔드포인트와 통합 |
-| **2 (출시 직후)** | Stage 2B 선택적 Claude Vision 29-trait | 트리거 로직 + 요금제 연동 + 비용 카운터 서버 구현 | 결제(`billing.Subscription`) 연동 필요 |
-| **3 (성장기)** | Stage 3 시계열 비교 + 알림 | 전일 대비 severity 증가 추세, CEI 연계, 푸시 알림 | `ImageAnalysisResult` 모델 신규 (migration) |
-| **4 (중장기)** | 자체 VineTraitNet 학습 | 수집된 앱 데이터로 SFT → Claude Vision 의존 축소 | 데이터 1만 장 이상 축적 후 |
+| 무료 / 시범 | **OFF** (Stage 2B 스킵, 로컬만) | $0.00 | ❌ |
+| 월 10,000원 | 주 3회 (월 12회) | **$0.30** | 일 1회 허용 (월 +$0.75) |
+| 연 100,000원 | 매일 (월 30회) | **$0.75** | 일 1회 허용 (월 +$0.75) |
+
+긴급 트리거 조건: **Stage 2A confidence < 0.6** (오진 리스크 실시간 보완)
+
+#### 서버 측 하드 한도 — **유저별 월 한도 방식으로 변경 (승인)**
+
+전역 월 $1,500 방식(=월 유저 1,000명 기준)도 가능하나 **한 명이 초과하면 전 유저가 막히는 위험**이 있어 다음 방식 채택:
+
+```
+per-user monthly budget:
+  free:       $0
+  monthly:    $1.50   (정기 12 + 긴급 최대 30)
+  yearly:     $1.75   (정기 30 + 긴급 최대 30)
+
+global safety:
+  total monthly cap: $1,500
+  알림: 80% 도달 시 관리자 이메일
+  초과: 신규 유저 대기열 (기존 유저는 본인 한도 내 계속 사용)
+```
+
+#### 월별 총 비용 시뮬레이션
+
+| 유저 구성 | 월 호출 | 월 비용 |
+|---|---|---|
+| 월 10K × 100명 (100% 활성) | 1,200 | ~$30 |
+| 월 10K × 500명 | 6,000 | ~$150 |
+| 연 10만 × 100명 | 3,000 | ~$75 |
+| 연 10만 × 500명 | 15,000 | ~$375 |
+| 혼합(월500+연500) + 긴급 20% | ~22,500 | **~$565** |
+
+→ $1,500 전역 한도는 **월 2,000명 수준까지 안전**. 그 이상이면 한도 상향 또는 로컬 모델 단독 운영 강화.
+
+#### 비용 추적 구현
+
+- `ImageAnalysisResult.vision_used: bool` 저장
+- `billing.VisionUsageLog(user, called_at, cost_cents)` 신규 테이블
+- `POST /api/fieldbook/entries/` 내부에서 호출 전 한도 체크
+
+### 2.4 우선순위별 구현 단계 (v2 승인안)
+
+| Phase | 스코프 | 비고 |
+|---|---|---|
+| **1 (Phase B = 출시 전 필수)** | Stage 0 + Stage 1 GDD 컨텍스트 + Stage 2A 로컬 10-class + **Stage 2B Claude Vision (요금제 한도 내)** + Stage 3 교차검증 + Stage 4 저장 | **Vision MVP 이미 완성 → 요금제 게이트만 추가하면 Phase 1에 포함**. 별도 Phase 2 없음 |
+| **2 (성장기 실제 트래픽 후)** | 시계열 알림 고도화 + 확정 제안 플로우 (budbreak/flowering/veraison 자동 제안) | 실측 데이터 누적 필요 |
+| **3 (중장기)** | 자체 VineTraitNet 학습으로 Claude Vision 의존 축소 | 1만 장 이상 축적 후 |
 
 ---
 
@@ -283,39 +340,52 @@ FARMSENSE_BACKEND_BRIEFING.md · FRONTEND_API_GUIDE.md
 
 ---
 
-## 승인 필요 항목 (요약)
+## 승인 결과 (v2 — 2026-04-22 사용자 승인)
 
-- [ ] **UX 변경 방향**
-  - [ ] 진단 탭 = 팜닥터 전체 (DiagnosisHub 폐기)
-  - [ ] SmartScannerScreen 3탭 구조 해체 → 팜닥터 내부 "즉시진단"만 남기고 나머지 삭제
-  - [ ] "진단" → "건강 체크"/"관찰 기록" 리네이밍 진행 여부
-- [ ] **Phase 1 스코프**
-  - [ ] Stage 0/1/2A + Stage 4 DB 저장까지만 출시 전 필수 구현
-  - [ ] Claude Vision은 `image_type` 감지(비식물 필터)용으로 최소만 사용
-  - [ ] Stage 2B 선택적 Vision은 Phase 2로 미룸
-- [ ] **서버 신규 작업 (Phase B와 통합)**
-  - [ ] `POST /api/fieldbook/entries/` 신규
-  - [ ] `ImageAnalysisResult` 모델 신규 (bbch_estimate/disease/traits/cei_at_capture)
-  - [ ] `IrrigationRecord`/`FertilizerRecord` migration 수정
-  - [ ] Stage 3 교차검증 서비스 클래스 신규 (`diagnosis/services/stage3_validator.py`)
-- [ ] **Claude Vision 비용 제어**
-  - [ ] 일일 호출 한도 (기본 $100/월) 설정 여부
-  - [ ] 요금제 연동 (billing.Subscription) 설계 승인
-- [ ] **중복 자산 정리 결정**
-  - [ ] `diagnosis_server/` 별도 서버 유지/폐기
-  - [ ] `ai_models/best_model.pth` (15-class 구버전) 처리
-  - [ ] YOLO(grape_disease_best.pt/variety_best.pt) 파일 존재 확인 및 통합/제거
+### ✅ 승인 완료
+- **UX**: 진단 탭 = 팜닥터 전체. "진단" → "건강 체크" 리네이밍. DiagnosisHub/SmartScanner 3탭 해체.
+- **Phase 1 스코프 확장**: Vision MVP가 이미 `image_analyzer.py`에 완성돼 있으므로 **Stage 2B도 Phase 1에 포함** (요금제 게이트만 추가).
+- **비용 정책**: 요금제별 유저 한도 (월1만=주3회, 연10만=매일) + 긴급 트리거 일1회 + **유저별 월 한도 방식** (전역 $1,500 safety cap).
+- **Phase B 재정의**: "영농일지 저장 API"가 아니라 "성장일지 + 자동 분석 Phase 1" 전체.
+
+### 🟡 조건부 승인 — Phase B 이후로 연기
+- `diagnosis_server/` 별도 서버: **Phase B 중에는 건드리지 않음**. 의존성 실측 후 Phase C에서 폐기.
+- `ai_models/best_model.pth` (15-class 구버전): Phase B 끝나고 실측 후 삭제 판단.
+- YOLO(grape_disease_best.pt / grape_variety_best.pt): **파일 존재 여부만 Phase B 중 확인** (`ls dss/models/`). 폐기는 Phase C.
+
+### 🚨 v2 핵심 개정
+- **발달단계 AI 모델 없음 확정** → Stage 1을 "AI 분류"가 아니라 **"GDD 규칙 엔진 결과를 Vision 프롬프트에 컨텍스트로 주입"** 방식으로 변경.
+- Stage 3 교차검증도 "휴면기 노균 기각" 같은 생태학 룰은 **항상 GDD 규칙이 정답**, Vision은 검증값으로 재구성.
 
 ---
 
-## 결론
+## 결론 (v2)
 
-**모델은 이미 있다. 조합과 UX가 없었다.**
+**모델은 이미 있다. 조립과 UX가 없었다. 발달단계는 AI 대신 GDD 규칙 엔진이 담당.**
 
-Phase 1 작업량:
-- 서버: 엔드포인트 1개 신규 + 모델 1개 신규 + 서비스 2개(교차검증/시계열) + migration 수정
-- 앱: 팜닥터 탭 교체 + 성장일지 업로드 결과 카드 UI + "진단" 용어 정리
+### Phase B 작업 범위 (확정)
 
-Claude Vision 통합은 **이미 코드는 완성, 호출 로직만 없음** — Phase 2에서 트리거 + 비용 제어만 추가.
+**서버 신규/수정**
+1. `POST /api/fieldbook/entries/` 신규 (FieldBookEntry + Photo + 자동 분석 트리거)
+2. `ImageAnalysisResult` 모델 신규 (gdd_bbch/vision_bbch/stage_mismatch/disease_local/severity/traits_json/cei_at_capture/vision_used)
+3. `diagnosis/services/stage3_validator.py` 신규 (R1~R9 룰)
+4. Claude Vision 호출 래퍼 + 요금제 게이트 (`micro_decision.image_analyzer` 재사용 + per-user budget 체크)
+5. `billing.VisionUsageLog` 테이블 신규 (월 비용 추적)
+6. `IrrigationRecord` / `FertilizerRecord` migration 수정 (기존 ProgrammingError 해결)
 
-**다음 단계**: Phase B(영농일지) 시작 전 이 설계서 승인 → Phase B 스코프를 "LogWrite 저장 API"가 아니라 **"성장일지 + 자동 분석 파이프라인 Phase 1"**으로 재정의.
+**앱 신규/수정**
+7. 진단 탭 컴포넌트 교체: `DiagnosisHubScreen` → `FarmDoctorScreen`
+8. LogWriteScreen 저장 핸들러 실제 API 연결
+9. 성장일지 업로드 후 자동 분석 결과 카드 UI (BBCH/disease/severity/traits/mismatch 알림)
+10. "진단" 용어 일괄 치환: "건강 체크" (팜닥터 내부 카드 라벨 포함)
+11. SmartScannerScreen 3탭 해체 (차폐율/생육기록은 성장일지로 통합되므로 제거)
+
+**건드리지 않음 (Phase C)**
+- `diagnosis_server/` 별도 서버
+- `ai_models/best_model.pth` (15-class 구버전)
+- YOLO 파일
+
+### 다음 단계
+1. 이 v2 문서 최종 확인
+2. Phase B 실행 (서버 6개 + 앱 5개 작업)
+3. Phase B 완료 후 APK 빌드 + 폰 검증
