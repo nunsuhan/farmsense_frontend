@@ -41,7 +41,18 @@ const TermsScreen: React.FC = () => {
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={styles.heading}>제5조 (책임 제한)</Text>
+                    <Text style={styles.heading}>제5조 (서비스 요금 정책)</Text>
+                    <Text style={styles.listItem}>1. 현재 본 서비스는 모든 기능을 무료로 제공합니다.</Text>
+                    <Text style={styles.listItem}>2. 향후 일부 기능을 유료 구독으로 전환할 수 있으며, 이 경우 전환 예정일로부터 최소 30일 이전에 다음 방법으로 사전 통지합니다:</Text>
+                    <Text style={[styles.listItem, { marginLeft: 20 }]}>가. 앱 내 공지사항 배너</Text>
+                    <Text style={[styles.listItem, { marginLeft: 20 }]}>나. 가입 시 등록된 이메일</Text>
+                    <Text style={[styles.listItem, { marginLeft: 20 }]}>다. 카카오톡 알림 (동의한 경우)</Text>
+                    <Text style={styles.listItem}>3. 유료 전환 이전 가입자에 대해서는 별도의 혜택을 제공할 수 있습니다.</Text>
+                    <Text style={styles.listItem}>4. 무료 사용 기간 동안 축적된 사용자 데이터(영농일지, 사진, 진단 기록 등)는 유료 전환 여부와 무관하게 계속 접근 가능합니다.</Text>
+                </View>
+
+                <View style={styles.section}>
+                    <Text style={styles.heading}>제6조 (책임 제한)</Text>
                     <Text style={styles.text}>
                         회사는 천재지변 또는 이에 준하는 불가항력으로 인하여 서비스를 제공할 수 없는 경우에는 서비스 제공에 관한 책임이 면제됩니다. 또한, AI 진단 결과는 참고용이며, 이에 대한 최종 판단 및 책임은 사용자에게 있습니다.
                     </Text>

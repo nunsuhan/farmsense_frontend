@@ -67,11 +67,24 @@ const TermsScreen: React.FC = () => {
 
         <Text style={styles.articleTitle}>제7조 (서비스의 이용 및 제한)</Text>
         <Text style={styles.articleContent}>
-          • 회사가 제공하는 재배 팁이나 AI 진단 결과는 
-          <Text style={styles.bold}> 데이터 분석을 기반으로 한 참고 정보</Text>이며, 
+          • 회사가 제공하는 재배 팁이나 AI 진단 결과는
+          <Text style={styles.bold}> 데이터 분석을 기반으로 한 참고 정보</Text>이며,
           최종적인 농작업 결정 및 책임은 전적으로 회원에게 있습니다.{'\n\n'}
-          • 회사는 기계적 결함, 오류 등으로 인해 서비스 제공이 일시적으로 중단될 수 있으며, 
+          • 회사는 기계적 결함, 오류 등으로 인해 서비스 제공이 일시적으로 중단될 수 있으며,
           이로 인한 농업적 손실에 대해 원칙적으로 배상 책임을 지지 않습니다.
+        </Text>
+
+        <Text style={styles.articleTitle}>제8조 (서비스 요금 정책)</Text>
+        <Text style={styles.articleContent}>
+          1. 현재 본 서비스는 모든 기능을 무료로 제공합니다.{'\n\n'}
+          2. 향후 일부 기능을 유료 구독으로 전환할 수 있으며, 이 경우 전환 예정일로부터
+          <Text style={styles.bold}> 최소 30일 이전</Text>에 다음 방법으로 사전 통지합니다:{'\n'}
+          {'   '}가. 앱 내 공지사항 배너{'\n'}
+          {'   '}나. 가입 시 등록된 이메일{'\n'}
+          {'   '}다. 카카오톡 알림 (동의한 경우){'\n\n'}
+          3. 유료 전환 이전 가입자에 대해서는 별도의 혜택을 제공할 수 있습니다.{'\n\n'}
+          4. 무료 사용 기간 동안 축적된 사용자 데이터(영농일지, 사진, 진단 기록 등)는
+          유료 전환 여부와 무관하게 계속 접근 가능합니다.
         </Text>
       </View>
 
@@ -147,7 +160,16 @@ const TermsScreen: React.FC = () => {
       </View>
 
       <View style={styles.article}>
-        <Text style={styles.articleTitle}>제5조 (개인정보의 안전성 확보 조치)</Text>
+        <Text style={styles.articleTitle}>제5조 (유료 서비스 전환 시 데이터 보존)</Text>
+        <Text style={styles.articleContent}>
+          향후 본 서비스 중 일부 기능이 유료 구독으로 전환될 수 있습니다.
+          <Text style={styles.bold}> 유료 서비스 전환 후에도 무료 시기 등록된 사용자 데이터(영농일지, 사진, 진단 기록 등)는 계속 유지되며 접근 가능합니다.</Text>{'\n\n'}
+          전환 일정 및 유료 기능 범위는 전환 예정일로부터 최소 30일 이전에 앱 내 공지사항, 이메일, 카카오톡 알림(동의 시)을 통해 사전 고지합니다.
+        </Text>
+      </View>
+
+      <View style={styles.article}>
+        <Text style={styles.articleTitle}>제6조 (개인정보의 안전성 확보 조치)</Text>
         <Text style={styles.articleContent}>
           회사는 개인정보의 안전성 확보를 위해 기술적·관리적 및 물리적 조치를 취하고 있습니다.{'\n\n'}
           <Text style={styles.bold}>• 기술적 대책:</Text> 개인정보처리시스템 접근 통제, 암호화 통신, 
@@ -160,7 +182,7 @@ const TermsScreen: React.FC = () => {
       </View>
 
       <View style={styles.article}>
-        <Text style={styles.articleTitle}>제6조 (개인정보 보호책임자)</Text>
+        <Text style={styles.articleTitle}>제7조 (개인정보 보호책임자)</Text>
         <Text style={styles.articleContent}>
           회사는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 
           개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제 등을 위하여 

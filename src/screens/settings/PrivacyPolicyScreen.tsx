@@ -43,7 +43,17 @@ const PrivacyPolicyScreen: React.FC = () => {
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={styles.heading}>5. 개인정보 보호책임자</Text>
+                    <Text style={styles.heading}>5. 유료 서비스 전환 시 데이터 보존</Text>
+                    <Text style={styles.text}>
+                        향후 본 서비스 중 일부 기능이 유료 구독으로 전환될 수 있습니다. 유료 서비스 전환 후에도 무료 시기 등록된 사용자 데이터(영농일지, 사진, 진단 기록 등)는 계속 유지되며 접근 가능합니다.
+                    </Text>
+                    <Text style={styles.text}>
+                        전환 일정 및 유료 기능 범위는 전환 예정일로부터 최소 30일 이전에 앱 내 공지사항, 이메일, 카카오톡 알림(동의 시)을 통해 사전 고지합니다.
+                    </Text>
+                </View>
+
+                <View style={styles.section}>
+                    <Text style={styles.heading}>6. 개인정보 보호책임자</Text>
                     <Text style={styles.text}>
                         회사는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.
                     </Text>
