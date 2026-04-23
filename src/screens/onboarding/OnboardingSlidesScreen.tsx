@@ -35,7 +35,7 @@ interface SlideData {
   title: string;
   subtitle: string;
   image?: any;
-  type: 'hero' | 'data' | 'ai';
+  type: 'hero' | 'data' | 'ai' | 'no_sensor';
 }
 
 const SLIDES: SlideData[] = [
@@ -57,6 +57,16 @@ const SLIDES: SlideData[] = [
     title: 'Meet Your Smart Farm OS',
     subtitle: '24시간 깨어있는 AI 비서가\n지금 필요한 조치를 제안합니다.',
     type: 'ai',
+  },
+  {
+    id: '4',
+    title: '📷 센서가 없어도 괜찮아요',
+    subtitle:
+      '영농일지와 사진을 자주 올려주시면\nAI가 농장 상태를 더 정확히 분석해드립니다.\n\n' +
+      '✓ 매일 사진 1장이면 충분\n' +
+      '✓ 간단한 메모로 이상 신호 감지\n' +
+      '✓ 자동으로 일일 보고서 생성',
+    type: 'no_sensor',
   },
 ];
 
@@ -211,6 +221,12 @@ const OnboardingSlidesScreen = () => {
               /* Waveform */
               <View style={styles.waveContainer}>
                 {[...Array(5)].map((_, i) => <WaveLine key={i} delay={i * 100} />)}
+              </View>
+            )}
+            {item.type === 'no_sensor' && (
+              /* 센서 없는 농가 안내 - 카메라 아이콘 원 */
+              <View style={styles.circleGraphic}>
+                <Text style={{ fontSize: 64 }}>📷</Text>
               </View>
             )}
           </View>
