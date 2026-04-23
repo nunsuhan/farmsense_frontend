@@ -115,18 +115,6 @@ export const APP_CONFIG = {
   SUPPORT_EMAIL: 'support@farmsense.com',
 };
 
-// 토스페이먼츠 설정
-export const TOSS_CONFIG = {
-  CLIENT_KEY: 'test_ck_Poxy1XQL8R96EXw9Zxg9r7nO5Wml',
-};
-
-// 요금제 설정
-export const PLAN_CONFIG = {
-  MONTHLY_PRICE: 10000,    // 월 10,000원
-  YEARLY_PRICE: 100000,    // 연 100,000원
-  TRIAL_MONTHS: 2,
-};
-
 // 사업자 정보 (카드사 등록 심사 필수 항목)
 export const BUSINESS_INFO = {
   COMPANY_NAME: '팜센스',                    // 상호명

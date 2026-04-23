@@ -153,6 +153,7 @@ export const RootNavigator = () => {
                         {/* Settings & Profile Features */}
                         <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
                         <Stack.Screen name="ReverseAnalysis" component={ReverseAnalysisScreen} />
+                        <Stack.Screen name="FarmBasicInfo" component={FarmBasicInfoScreen} />
 
                         {/* Menu Screen (Popup) */}
                         <Stack.Screen

@@ -127,6 +127,10 @@ const FarmBasicInfoScreen = () => {
         if (user) {
           await setUser({ ...(user as any), onboarding_completed: true });
         }
+        // 안전장치: flowMode 전환 타이밍 race 대비
+        try {
+          (navigation as any).reset({ index: 0, routes: [{ name: 'MainTab' }] });
+        } catch {}
       } catch (e) {
         console.warn('[FarmBasicInfo] completeOnboarding 실패:', e);
         Alert.alert('오류', '초기 설정 완료 처리에 실패했습니다. 잠시 후 다시 시도해주세요.');
