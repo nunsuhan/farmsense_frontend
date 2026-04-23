@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import ScreenWrapper from '../../components/common/ScreenWrapper';
 import HelpModal from '../../components/common/HelpModal';
 import { useHelpModal } from '../../hooks/useHelpModal';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { authApi } from '../../services/authApi';
+import { useStore } from '../../store/useStore';
 
 const NotificationSettingsScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -21,6 +23,44 @@ const NotificationSettingsScreen: React.FC = () => {
   // 푸시 알림 총괄 설정
   const [pushEnabled, setPushEnabled] = useState(true);
   const { isVisible: showHelp, showHelp: openHelp, closeHelp } = useHelpModal('HELP_NOTIFICATION');
+
+  // 카카오톡 보고서 수신 (서버 플래그)
+  const user = useStore((s) => s.user) as any;
+  const setUser = useStore((s) => s.setUser);
+  const [kakaoReport, setKakaoReport] = useState<boolean>(!!user?.kakao_report_enabled);
+  const [kakaoSaving, setKakaoSaving] = useState(false);
+  useEffect(() => {
+    setKakaoReport(!!user?.kakao_report_enabled);
+  }, [user?.kakao_report_enabled]);
+
+  const toggleKakaoReport = async (next: boolean) => {
+    if (kakaoSaving) return;
+    const apply = async (enabled: boolean) => {
+      setKakaoSaving(true);
+      try {
+        await authApi.setKakaoReportEnabled(enabled);
+        setKakaoReport(enabled);
+        const refreshed = await authApi.getFullProfile();
+        await setUser(refreshed as any);
+      } catch (e: any) {
+        Alert.alert('오류', e?.response?.data?.error || '저장에 실패했습니다.');
+      } finally {
+        setKakaoSaving(false);
+      }
+    };
+    if (next) {
+      Alert.alert(
+        '카카오톡 알림 수신 동의',
+        '매일 아침 7시경 재배 의견과 위험 알림을 카카오톡 알림톡으로 받으시겠어요?\n(정보성 메시지, 광고 아님)',
+        [
+          { text: '아니요', style: 'cancel' },
+          { text: '동의', onPress: () => apply(true) },
+        ]
+      );
+    } else {
+      apply(false);
+    }
+  };
 
   // 세부 알림 설정
   const [sensorAlert, setSensorAlert] = useState(true);
@@ -124,6 +164,21 @@ const NotificationSettingsScreen: React.FC = () => {
             pushEnabled,
             () => setPushEnabled(!pushEnabled),
             '#F59E0B'
+          )}
+        </View>
+
+        {/* 카카오톡 알림 (서버 동기화) */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>💬 카카오톡 알림</Text>
+          </View>
+          {renderToggle(
+            '카카오톡으로 일일 보고서 받기',
+            '매일 아침 7시경 재배 의견을 알림톡으로 (정보성 메시지, 기본 OFF)',
+            'chatbubbles',
+            kakaoReport,
+            () => toggleKakaoReport(!kakaoReport),
+            '#FEE500'
           )}
         </View>
 

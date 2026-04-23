@@ -18,6 +18,7 @@ import SplashScreen from '../screens/SplashScreen';
 import OnboardingSlidesScreen from '../screens/onboarding/OnboardingSlidesScreen';
 import PermissionRequestScreen from '../screens/onboarding/PermissionRequestScreen';
 import FarmRegistrationScreen from '../screens/onboarding/FarmRegistrationScreen';
+import OnboardingSetupScreen from '../screens/onboarding/OnboardingSetupScreen';
 
 // Core Features
 import { SmartScannerScreen } from '../screens/smart-lens/SmartScannerScreen';
@@ -84,24 +85,32 @@ export const RootNavigator = () => {
     const isInitialized = useStore(state => state.isInitialized);
     const hasSeenOnboarding = useStore(state => state.hasSeenOnboarding);
 
-    // Auth check is now only one factor. 
-    // If user is logged in OR has seen onboarding, they go to main flow.
-    // If they are strictly new and not logged in, they see onboarding.
-
-    // [2026-01-18 Update] User Request: Skip Onboarding for Free Start Version.
-    // Force main flow to ensure user goes straight to main screen on download.
-    const showMainFlow = true; // !!user || hasSeenOnboarding;
+    // 로그인 상태 + onboarding_completed 플래그로 분기:
+    //  1) 로그인됨 + onboarding_completed=true → MainTab
+    //  2) 로그인됨 + onboarding_completed=false → OnboardingSetup 강제
+    //  3) 비로그인 + 게스트 모드(hasSeenOnboarding=true) → MainTab (로그인 유도는 MainTab 내부에서)
+    //  4) 비로그인 + 신규 → OnboardingSlides + Auth
+    const isLoggedIn = !!user;
+    const onboardingDone = !!(user && (user as any).onboarding_completed);
 
     if (!isInitialized) {
         return <SplashScreen />;
     }
 
-    console.log('🔄 [RootNavigator] Render.', 'User:', user ? user.name : 'Guest', 'HasSeenOnboarding:', hasSeenOnboarding);
+    const flowMode: 'setup' | 'main' | 'intro' =
+        isLoggedIn && !onboardingDone
+            ? 'setup'
+            : (isLoggedIn || hasSeenOnboarding ? 'main' : 'intro');
 
     return (
         <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: false }} id={undefined}>
-                {showMainFlow ? (
+                {flowMode === 'setup' ? (
+                    <Stack.Group>
+                        {/* 회원가입 후 필수 설정 강제 플로우 */}
+                        <Stack.Screen name="OnboardingSetup" component={OnboardingSetupScreen} />
+                    </Stack.Group>
+                ) : flowMode === 'main' ? (
                     <Stack.Group>
                         {/* Main Tab (Guest or User) */}
                         <Stack.Screen name="MainTab" component={MainTabNavigator} />

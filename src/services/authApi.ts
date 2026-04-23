@@ -224,6 +224,20 @@ export const authApi = {
     return response.data;
   },
 
+  // 초기 설정 완료 (회원가입 후 필수 설정 플로우 끝 시점)
+  completeOnboarding: async (): Promise<{ success: boolean; onboarding_completed: boolean }> => {
+    const response = await apiClient.post('/users/onboarding/complete/');
+    return response.data;
+  },
+
+  // 카카오톡 보고서 수신 토글 (ProfileUpdateView.PATCH 경유)
+  setKakaoReportEnabled: async (enabled: boolean): Promise<any> => {
+    const response = await apiClient.patch('/users/profile/update/', {
+      kakao_report_enabled: enabled,
+    });
+    return response.data;
+  },
+
   // 비밀번호 변경
   changePassword: async (currentPassword: string, newPassword: string, _confirmPassword?: string) => {
     // Note: Backend API doesn't require confirm password, validation should be done on client

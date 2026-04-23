@@ -3,6 +3,8 @@ import { View, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthTokens } from '../../utils/secureStorage';
 import { useOnboarding } from '../../hooks/useOnboarding';
+import { useStore } from '../../store/useStore';
+import { authApi } from '../../services/authApi';
 import WelcomeStep from './WelcomeStep';
 import PhoneStep from './PhoneStep';
 import VerifyStep from './VerifyStep';
@@ -19,10 +21,19 @@ export default function OnboardingScreen({ onComplete }: Props) {
   const [tossPayload, setTossPayload] = useState<{
     checkoutUrl: string; successUrl: string; failUrl: string; customerKey: string;
   } | null>(null);
+  const setUser = useStore((s) => s.setUser);
   const finish = async () => {
     try {
       await AsyncStorage.setItem('onboarding_complete', 'true');
     } catch {}
+    // 회원가입 직후 서버 프로필을 가져와서 store에 반영.
+    // onboarding_completed=false일 것이므로 RootNavigator가 'setup' 모드로 분기.
+    try {
+      const profile = await authApi.getFullProfile();
+      await setUser(profile as any);
+    } catch (e) {
+      console.log('[Onboarding] profile fetch after signup failed', e);
+    }
     onComplete();
   };
   // Toss WebView overlay

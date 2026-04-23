@@ -6,6 +6,7 @@ export type RootStackParamList = {
   // Entry
   Splash: undefined;
   OnboardingSlides: undefined;
+  OnboardingSetup: undefined;  // 회원가입 후 필수 설정 플로우 (RootNavigator 'setup' 모드)
 
   // Auth
   Login: undefined;
