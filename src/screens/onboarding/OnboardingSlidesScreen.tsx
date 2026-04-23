@@ -164,10 +164,11 @@ const OnboardingSlidesScreen = () => {
   const setHasSeenOnboarding = useStore((state) => state.setHasSeenOnboarding);
 
   const handleStart = async () => {
-    // Finish onboarding (Guest Mode Entry)
+    // 소개 완료 플래그 저장 → 회원가입(SMS 인증)으로 직진
+    // LoginScreen 내부에서 SMS 인증 성공 시 신규/기존 유저 자동 처리 + 토큰 저장.
+    // 가입 직후 user.onboarding_completed=false 상태면 RootNavigator가 setup 모드로 전환.
     await setHasSeenOnboarding(true);
-    // Navigation will auto-switch due to RootNavigator state change, 
-    // providing a smooth transition to MainTab (or we can replace explicitly)
+    navigation.navigate('Login' as never);
   };
 
   const handleLoginNav = () => {
