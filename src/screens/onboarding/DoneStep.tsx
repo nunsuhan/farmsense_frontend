@@ -10,13 +10,12 @@ interface Props {
 const KAKAO_CHANNEL_URL = 'https://pf.kakao.com/_yzxbqX';
 
 export default function DoneStep({ plan = 'monthly', onFinish }: Props) {
-  const priceText = plan === 'monthly' ? '월 10,000원' : '년 100,000원';
   return (
     <View style={styles.container}>
       <View style={styles.checkCircle}><Text style={styles.checkMark}>✓</Text></View>
 
       <Text style={styles.title}>가입 완료!</Text>
-      <Text style={styles.desc}>2개월 무료 체험이 시작되었습니다{'\n'}체험 후 {priceText} 자동결제</Text>
+      <Text style={styles.desc}>FarmSense에 오신 것을 환영합니다</Text>
 
       <View style={styles.steps}>
         <Step n={1} text="카카오 채널 추가" />

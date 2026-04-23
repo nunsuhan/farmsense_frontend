@@ -48,7 +48,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
             // 인증 직후 즉시 토큰 저장 (이후 API 호출에 인증 필수)
             await setAuthTokens(token, refresh);
             update({ token });
-            goto('PLAN');
+            // Play Store 옵션 C: 시범 기간 동안 결제 단계 스킵 (PLAN/CARD 건너뛰고 DONE으로 직행)
+            goto('DONE');
           }}
         />
       )}

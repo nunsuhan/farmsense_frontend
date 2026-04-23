@@ -18,14 +18,14 @@ export const ExpertProfileScreen = () => {
 
     const handlePaymentRequest = () => {
         Alert.alert(
-            '컨설팅 결제',
-            `총 결제금액: ${CONSULTING_FEE.toLocaleString()}원\n\n(결제 시뮬레이션)\n플랫폼 수수료(20%): ${PLATFORM_FEE.toLocaleString()}원\n전문가 정산(80%): ${EXPERT_NET_PAY.toLocaleString()}원`,
+            '상담 신청',
+            '전문가에게 상담 신청을 전송할까요?\n\n시범 기간 동안은 무료로 제공됩니다.',
             [
                 { text: '취소', style: 'cancel' },
                 {
-                    text: '결제하기',
+                    text: '신청하기',
                     onPress: () => {
-                        Alert.alert('완료', '결제가 완료되었습니다.\n전문가에게 상담 신청이 전송되었습니다.');
+                        Alert.alert('완료', '전문가에게 상담 신청이 전송되었습니다.');
                         navigation.goBack();
                     }
                 }
