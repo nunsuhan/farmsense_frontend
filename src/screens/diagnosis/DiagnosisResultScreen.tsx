@@ -155,8 +155,15 @@ const DiagnosisResultScreen: React.FC = () => {
     };
 
     return (
-        <ScreenWrapper title="이상 징후 조기 감지 결과" showHeader showBack>
+        <ScreenWrapper title="AI 관찰 결과" showHeader showBack showMenu={false}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
+
+                {/* 상단 고정 안내: Play Store 심사 대응 + 의료/농업 자문법 리스크 완화 */}
+                <View style={styles.topDisclaimerBanner}>
+                    <Text style={styles.topDisclaimerText}>
+                        ⓘ AI 분석은 참고용입니다. 정확한 진단은 전문가와 상담하세요.
+                    </Text>
+                </View>
 
                 {/* 1. Image & Badge */}
                 <View style={styles.imageContainer}>
@@ -333,6 +340,8 @@ const styles = StyleSheet.create({
     gridIcon: { fontSize: 24 },
 
     disclaimerBox: { flexDirection: 'row', backgroundColor: '#F3F4F6', padding: 12, borderRadius: 8, marginTop: 8 },
+    topDisclaimerBanner: { backgroundColor: '#FFFBEB', borderWidth: 1, borderColor: '#FDE68A', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14, marginBottom: 12 },
+    topDisclaimerText: { fontSize: 13, color: '#92400E', fontWeight: '600', textAlign: 'center' },
 
     feedbackContainer: { alignItems: 'center', padding: 20, backgroundColor: '#FFF', borderRadius: 16, marginTop: 8 },
     feedbackRow: { flexDirection: 'row' },
