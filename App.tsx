@@ -22,11 +22,11 @@ LogBox.ignoreAllLogs(true);
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { initializeStore, useStore } from './src/store/useStore';
 import GlobalErrorBar from './src/components/common/GlobalErrorBar';
-import OnboardingScreen from './src/screens/onboarding/OnboardingScreen';
+// OnboardingScreen (결제 6스텝) dead code화 — RootNavigator가 단일 진입 담당
+// import OnboardingScreen from './src/screens/onboarding/OnboardingScreen';
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const isInitialized = useStore((state) => state.isInitialized);
 
   useEffect(() => {
@@ -35,14 +35,8 @@ export default function App() {
         console.log('🚀 [App] Initializing Store...');
         await initializeStore();
         console.log('✅ [App] Store initialized');
-
-        // 자동 로그인 판정 우선순위:
-        //  1) store에 user 복원됨 → OnboardingScreen 완전 스킵 (RootNavigator가 분기 담당)
-        //  2) AsyncStorage 'onboarding_complete' = 'true' → 스킵
-        //  3) 둘 다 아니면 회원가입 화면 표시
-        const flag = await AsyncStorage.getItem('onboarding_complete');
-        const hasUser = !!useStore.getState().user;
-        setShowOnboarding(!hasUser && flag !== 'true');
+        // RootNavigator가 flowMode(intro/setup/main)로 단일 진입 담당.
+        // OnboardingScreen(결제 6스텝)은 dead code화.
 
         // ✅ farmInfo 전파 확인
         const currentState = useStore.getState();
@@ -77,14 +71,11 @@ export default function App() {
     );
   }
 
+  // OnboardingScreen (결제 6스텝) 제거 — RootNavigator가 flowMode(intro/setup/main)로 단일 진입 담당
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        {showOnboarding ? (
-          <OnboardingScreen onComplete={() => setShowOnboarding(false)} />
-        ) : (
-          <RootNavigator />
-        )}
+        <RootNavigator />
         <GlobalErrorBar />
         <StatusBar style="auto" />
       </SafeAreaProvider>

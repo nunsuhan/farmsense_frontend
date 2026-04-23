@@ -18,7 +18,9 @@ import SplashScreen from '../screens/SplashScreen';
 import OnboardingSlidesScreen from '../screens/onboarding/OnboardingSlidesScreen';
 import PermissionRequestScreen from '../screens/onboarding/PermissionRequestScreen';
 import FarmRegistrationScreen from '../screens/onboarding/FarmRegistrationScreen';
-import OnboardingSetupScreen from '../screens/onboarding/OnboardingSetupScreen';
+// OnboardingSetupScreen 래퍼 dead code화 — FarmBasicInfoScreen을 setup 모드로 직접 사용
+// import OnboardingSetupScreen from '../screens/onboarding/OnboardingSetupScreen';
+import FarmBasicInfoScreen from '../screens/settings/FarmBasicInfoScreen';
 
 // Core Features
 import { SmartScannerScreen } from '../screens/smart-lens/SmartScannerScreen';
@@ -107,8 +109,12 @@ export const RootNavigator = () => {
             <Stack.Navigator screenOptions={{ headerShown: false }} id={undefined}>
                 {flowMode === 'setup' ? (
                     <Stack.Group>
-                        {/* 회원가입 후 필수 설정 강제 플로우 */}
-                        <Stack.Screen name="OnboardingSetup" component={OnboardingSetupScreen} />
+                        {/* 회원가입 후 필수 설정 강제 — 기존 FarmBasicInfo 재사용, initialParams로 첫 진입 모드 활성화 */}
+                        <Stack.Screen
+                            name="FarmBasicInfo"
+                            component={FarmBasicInfoScreen}
+                            initialParams={{ isInitialSetup: true }}
+                        />
                     </Stack.Group>
                 ) : flowMode === 'main' ? (
                     <Stack.Group>
