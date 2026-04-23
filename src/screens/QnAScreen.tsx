@@ -233,7 +233,7 @@ const QnAScreen: React.FC = () => {
   );
 
   return (
-    <ScreenWrapper title="AI 상담소" showBack showMenu={true}>
+    <ScreenWrapper title="AI 상담소" showBack showMenu={false}>
       <FlatList
         ref={flatListRef}
         data={messages}

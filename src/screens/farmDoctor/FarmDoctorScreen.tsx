@@ -21,27 +21,27 @@ const FarmDoctorScreen = () => {
     );
 
     return (
-        <ScreenWrapper title="팜닥터" showBack={true}>
+        <ScreenWrapper title="건강 체크" showBack={false} showMenu={false}>
             <ScrollView contentContainerStyle={styles.container}>
 
                 {/* Header Section */}
                 <View style={styles.headerSection}>
-                    <Text style={styles.subtitle}>포도 건강을 지키는 AI 주치의</Text>
+                    <Text style={styles.subtitle}>포도 건강을 지키는 AI 체크</Text>
                 </View>
 
-                {/* Diagnostic Services */}
+                {/* 관찰 서비스 */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionHeader}>진단 서비스</Text>
+                    <Text style={styles.sectionHeader}>관찰 서비스</Text>
                     <MenuCard
-                        title="즉시 진단"
-                        desc="사진으로 바로 병해 진단"
+                        title="잎/과실 체크"
+                        desc="사진으로 이상 증상 확인"
                         icon="camera"
                         color="#E0F2FE"
                         iconColor="#0284C7"
                         onPress={() => navigation.navigate('Diagnosis')}
                     />
                     <MenuCard
-                        title="예방 진단"
+                        title="예방 체크"
                         desc="실시간 위험도 분석"
                         icon="shield-checkmark"
                         color="#ECFDF5"
@@ -50,12 +50,12 @@ const FarmDoctorScreen = () => {
                     />
                 </View>
 
-                {/* History & Guide */}
+                {/* 이력 및 가이드 */}
                 <View style={styles.section}>
                     <Text style={styles.sectionHeader}>이력 및 가이드</Text>
                     <MenuCard
-                        title="진단 이력"
-                        desc="나의 진단 기록"
+                        title="관찰 이력"
+                        desc="나의 관찰 기록"
                         icon="time"
                         color="#EFF6FF"
                         iconColor="#2563EB"
@@ -63,7 +63,7 @@ const FarmDoctorScreen = () => {
                     />
                     <MenuCard
                         title="처방 가이드"
-                        desc="병해별 약제 검색"
+                        desc="증상별 약제 검색"
                         icon="book"
                         color="#FAF5FF"
                         iconColor="#9333EA"

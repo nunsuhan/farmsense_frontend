@@ -122,7 +122,7 @@ const FarmBasicInfoScreen = () => {
   return (
     <ScreenWrapper
       title="농장 기본정보"
-      showMenu={true}
+      showMenu={false}
       headerRight={
         <TouchableOpacity onPress={openHelp} style={{ padding: 4 }}>
           <MaterialCommunityIcons name="help-circle-outline" size={24} color="#6B7280" />

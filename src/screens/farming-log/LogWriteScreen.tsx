@@ -12,18 +12,72 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { ActivityIndicator } from 'react-native';
 import ScreenWrapper from '../../components/common/ScreenWrapper';
 import * as ImagePicker from 'expo-image-picker';
 import Voice, { SpeechResultsEvent, SpeechErrorEvent } from '@react-native-voice/voice';
+import { createFieldBookEntry, ImageAnalysisResult } from '../../services/fieldBookApi';
+import { useStore } from '../../store/useStore';
 
 export const LogWriteScreen: React.FC = () => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const [date] = useState(new Date());
     const [images, setImages] = useState<string[]>([]);
     const [memo, setMemo] = useState('');
     const [isListening, setIsListening] = useState(false);
     const [partialText, setPartialText] = useState('');
+    const [saving, setSaving] = useState(false);
+    const farmInfo = useStore((s) => s.farmInfo) as any;
+
+    const formatBbch = (code: number | null, korean: string) => {
+        if (code == null) return '미지정';
+        return `BBCH ${code}${korean ? ' · ' + korean : ''}`;
+    };
+
+    const handleSave = async () => {
+        if (!memo.trim() && images.length === 0) {
+            Alert.alert('알림', '작업 내용이나 사진을 추가해 주세요.');
+            return;
+        }
+        setSaving(true);
+        try {
+            const res = await createFieldBookEntry({
+                intervention_type: route.params?.receiptOCR ? 'other' : (images.length > 0 ? 'other' : 'other'),
+                intervention_date: date.toISOString().slice(0, 10),
+                details: route.params?.receiptOCR ? { receipt_ocr: route.params.receiptOCR } : {},
+                notes: memo.trim(),
+                farm_id: farmInfo?.id,
+                photos: images,
+            });
+
+            const analysisMessages: string[] = [];
+            (res.analysis_results || []).forEach((a: ImageAnalysisResult) => {
+                if (a.error) {
+                    analysisMessages.push(`• 분석 실패: ${a.error}`);
+                    return;
+                }
+                const bbch = formatBbch(a.gdd_bbch, a.gdd_bbch_korean);
+                const disease = a.disease_local && a.disease_local !== '00_normal'
+                    ? `이상 소견: ${a.disease_local} (신뢰도 ${Math.round((a.disease_confidence || 0) * 100)}%)`
+                    : '정상';
+                analysisMessages.push(`• 발달단계: ${bbch}\n  ${disease}`);
+                (a.warnings || []).forEach((w) => analysisMessages.push(`  ⚠ ${w}`));
+            });
+
+            const body = analysisMessages.length
+                ? `영농일지가 저장되었습니다.\n\n[자동 분석]\n${analysisMessages.join('\n')}`
+                : '영농일지가 저장되었습니다.';
+            Alert.alert('저장 완료', body, [
+                { text: '확인', onPress: () => navigation.goBack() },
+            ]);
+        } catch (e: any) {
+            const msg = e?.response?.data?.error || e?.message || '저장 실패';
+            Alert.alert('오류', msg);
+        } finally {
+            setSaving(false);
+        }
+    };
 
     // 영수증 OCR 결과 prefill (ReceiptOCRScreen에서 전달)
     useEffect(() => {
@@ -196,17 +250,15 @@ export const LogWriteScreen: React.FC = () => {
 
                 {/* Save Button */}
                 <TouchableOpacity
-                    style={styles.saveBtn}
-                    onPress={() => {
-                        if (!memo.trim()) {
-                            Alert.alert('알림', '작업 내용을 입력해주세요.');
-                            return;
-                        }
-                        Alert.alert('저장 완료', '영농일지가 저장되었습니다.');
-                        navigation.goBack();
-                    }}
+                    style={[styles.saveBtn, saving && { opacity: 0.6 }]}
+                    onPress={handleSave}
+                    disabled={saving}
                 >
-                    <Text style={styles.saveText}>💾 저장하기</Text>
+                    {saving ? (
+                        <ActivityIndicator color="#FFFFFF" />
+                    ) : (
+                        <Text style={styles.saveText}>💾 저장하기</Text>
+                    )}
                 </TouchableOpacity>
             </View>
         </ScreenWrapper>

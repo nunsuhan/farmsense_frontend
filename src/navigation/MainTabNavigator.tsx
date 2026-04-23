@@ -11,7 +11,7 @@ import { colors } from '../theme/colors';
 import { HomeStackNavigator } from './HomeStackNavigator';
 import { FarmingLogStackNavigator } from './FarmingLogStackNavigator';
 import { SettingsStackNavigator } from './SettingsStackNavigator';
-import DiagnosisHubScreen from '../screens/diagnosis/DiagnosisHubScreen';
+import FarmDoctorScreen from '../screens/farmDoctor/FarmDoctorScreen';
 import ConsultScreen from '../screens/consult/ConsultScreen';
 import MoreScreen from '../screens/more/MoreScreen';
 
@@ -50,7 +50,7 @@ export const MainTabNavigator = () => {
     >
       <Tab.Screen name="HomeTab" component={HomeStackNavigator} options={{ title: '홈' }} />
       <Tab.Screen name="ConsultTab" component={ConsultScreen} options={{ title: 'AI상담' }} />
-      <Tab.Screen name="DiagnosisTab" component={DiagnosisHubScreen} options={{ title: '진단' }} />
+      <Tab.Screen name="DiagnosisTab" component={FarmDoctorScreen} options={{ title: '건강 체크' }} />
       <Tab.Screen name="LogTab" component={FarmingLogStackNavigator} options={{ title: '영농일지' }} />
       <Tab.Screen name="MyFarmTab" component={SettingsStackNavigator} options={{ title: '내농장' }} />
       <Tab.Screen name="MoreTab" component={MoreScreen} options={{ title: '더보기' }} />

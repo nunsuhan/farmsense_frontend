@@ -241,7 +241,7 @@ const DailyPrescriptionScreen: React.FC = () => {
   }
 
   return (
-    <ScreenWrapper title="농작업 일정" showBack showMenu={true}>
+    <ScreenWrapper title="농작업 일정" showBack showMenu={false}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}

@@ -88,7 +88,7 @@ const FarmDetailInfoScreen = () => {
   );
 
   return (
-    <ScreenWrapper title="상세 재배 환경" showBack={true} showMenu={true}>
+    <ScreenWrapper title="상세 재배 환경" showBack={true} showMenu={false}>
       <ScrollView style={styles.content}>
         <View style={styles.infoBox}>
           <Ionicons name="information-circle-outline" size={20} color="#3B82F6" />

@@ -236,7 +236,7 @@ export const SmartScannerScreen: React.FC = () => {
                         <View style={styles.bottomControlsContainer}>
                             <View style={styles.tabSwitcherContainer}>
                                 <ScrollView horizontal contentContainerStyle={styles.tabRow} showsHorizontalScrollIndicator={false}>
-                                    {['AI 진단', '생육 기록', '차폐율'].map((tab) => (
+                                    {['AI 진단'].map((tab) => (
                                         <TouchableOpacity
                                             key={tab}
                                             style={[styles.tabItem, activeTab === tab && styles.tabItemActive]}

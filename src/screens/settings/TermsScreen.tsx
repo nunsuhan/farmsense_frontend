@@ -5,7 +5,7 @@ import ScreenWrapper from '../../components/common/ScreenWrapper';
 
 const TermsScreen: React.FC = () => {
     return (
-        <ScreenWrapper title="이용약관" showBack showMenu={true}>
+        <ScreenWrapper title="이용약관" showBack showMenu={false}>
             <ScrollView style={styles.content}>
                 <Text style={styles.title}>서비스 이용약관</Text>
                 <Text style={styles.date}>시행일: 2024년 12월 29일</Text>

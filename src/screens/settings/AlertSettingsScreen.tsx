@@ -61,7 +61,7 @@ const AlertSettingsScreen = () => {
   );
 
   return (
-    <ScreenWrapper title="알림 설정" showBack={true} showMenu={true}>
+    <ScreenWrapper title="알림 설정" showBack={true} showMenu={false}>
       <ScrollView style={styles.content}>
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>필수 알림</Text>

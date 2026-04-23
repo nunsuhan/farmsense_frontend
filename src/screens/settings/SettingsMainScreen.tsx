@@ -105,7 +105,7 @@ const SettingsMainScreen = () => {
   };
 
   return (
-    <ScreenWrapper title="설정" showBack={false} showMenu={true}>
+    <ScreenWrapper title="설정" showBack={false} showMenu={false}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* 헤더 섹션 */}
         <View style={styles.headerSection}>

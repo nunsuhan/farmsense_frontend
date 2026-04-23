@@ -23,7 +23,7 @@ const NotificationScreen: React.FC = () => {
     const times = ['06:00', '06:30', '07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00'];
 
     return (
-        <ScreenWrapper title="알림 설정" showBack showMenu={true}>
+        <ScreenWrapper title="알림 설정" showBack showMenu={false}>
             <View style={styles.container}>
                 <ScrollView style={styles.content}>
 

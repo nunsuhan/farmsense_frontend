@@ -63,7 +63,7 @@ const FarmDetailScreen: React.FC = () => {
         <ScreenWrapper
             title="농장 상세 정보"
             showBack
-            showMenu={true}
+            showMenu={false}
             headerRight={
                 <TouchableOpacity onPress={handleSave}>
                     <Text style={styles.saveButton}>저장</Text>

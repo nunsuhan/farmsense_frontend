@@ -5,7 +5,7 @@ import ScreenWrapper from '../../components/common/ScreenWrapper';
 
 const PrivacyPolicyScreen: React.FC = () => {
     return (
-        <ScreenWrapper title="개인정보처리방침" showBack showMenu={true}>
+        <ScreenWrapper title="개인정보처리방침" showBack showMenu={false}>
             <ScrollView style={styles.content}>
                 <Text style={styles.title}>개인정보처리방침</Text>
                 <Text style={styles.date}>시행일: 2024년 12월 29일</Text>
