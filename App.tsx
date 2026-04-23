@@ -33,10 +33,16 @@ export default function App() {
     const initialize = async () => {
       try {
         console.log('🚀 [App] Initializing Store...');
-        const flag = await AsyncStorage.getItem('onboarding_complete');
-        setShowOnboarding(flag !== 'true');
         await initializeStore();
         console.log('✅ [App] Store initialized');
+
+        // 자동 로그인 판정 우선순위:
+        //  1) store에 user 복원됨 → OnboardingScreen 완전 스킵 (RootNavigator가 분기 담당)
+        //  2) AsyncStorage 'onboarding_complete' = 'true' → 스킵
+        //  3) 둘 다 아니면 회원가입 화면 표시
+        const flag = await AsyncStorage.getItem('onboarding_complete');
+        const hasUser = !!useStore.getState().user;
+        setShowOnboarding(!hasUser && flag !== 'true');
 
         // ✅ farmInfo 전파 확인
         const currentState = useStore.getState();
