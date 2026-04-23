@@ -45,7 +45,6 @@ import CanopyCameraScreen from '../screens/CanopyCameraScreen';
 import SettingsMainScreen from '../screens/settings/SettingsMainScreen';
 
 // Settings - Details
-import FarmBasicInfoScreen from '../screens/settings/FarmBasicInfoScreen';
 import FarmDetailInfoScreen from '../screens/settings/FarmDetailInfoScreen';
 import AlertSettingsScreen from '../screens/settings/AlertSettingsScreen';
 import SensorRegistrationScreen from '../screens/settings/SensorRegistrationScreen';

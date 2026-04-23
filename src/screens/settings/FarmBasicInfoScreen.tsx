@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,10 @@ import {
   Alert,
   TextInput,
   Switch,
+  BackHandler,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect, RouteProp } from '@react-navigation/native';
 import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { useStore } from '../../store/useStore';
 import { GRAPE_VARIETIES } from '../../constants/grapeContext';
@@ -18,10 +19,17 @@ import HelpModal from '../../components/common/HelpModal';
 import { useHelpModal } from '../../hooks/useHelpModal';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { farmmapApi } from '../../services/farmmapApi';
+import { authApi } from '../../services/authApi';
+
+type FarmBasicInfoRouteParams = {
+  FarmBasicInfo: { isInitialSetup?: boolean };
+};
 
 const FarmBasicInfoScreen = () => {
   const navigation = useNavigation();
-  const { farmInfo, setFarmInfo } = useStore();
+  const route = useRoute<RouteProp<FarmBasicInfoRouteParams, 'FarmBasicInfo'>>();
+  const isInitialSetup = !!route.params?.isInitialSetup;
+  const { farmInfo, setFarmInfo, setUser, user } = useStore();
   const { isVisible: showHelp, showHelp: openHelp, closeHelp } = useHelpModal('HELP_FARM_BASIC');
 
   // 기본 정보
@@ -52,39 +60,82 @@ const FarmBasicInfoScreen = () => {
     }
   }, [farmInfo]);
 
+  // 첫 진입 필수 설정 모드: 하드웨어 뒤로가기 차단
+  useFocusEffect(
+    useCallback(() => {
+      if (!isInitialSetup) return;
+      const onBackPress = () => {
+        Alert.alert('알림', '농장 설정을 완료해야 앱을 사용할 수 있습니다.');
+        return true;
+      };
+      const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => sub.remove();
+    }, [isInitialSetup])
+  );
+
+  const requiredFilled = isInitialSetup
+    ? !!(farmName.trim() && region.trim() && cultivationType && budBreakDate.trim())
+    : !!farmName.trim();
+
   const handleSave = async () => {
-    if (!farmName) {
+    if (isInitialSetup) {
+      const missing: string[] = [];
+      if (!farmName.trim()) missing.push('농장명');
+      if (!region.trim()) missing.push('농장 주소');
+      if (!cultivationType) missing.push('재배 환경');
+      if (!budBreakDate.trim()) missing.push('맹아일');
+      if (missing.length > 0) {
+        Alert.alert('필수 입력', `다음 항목을 입력해주세요.\n\n• ${missing.join('\n• ')}`);
+        return;
+      }
+    } else if (!farmName) {
       Alert.alert('알림', '농장 이름을 입력해주세요.');
       return;
     }
 
-    if (farmInfo) {
-      const info = {
-        ...farmInfo,
-        id: facilityId || farmInfo.id,
-        name: farmName,
-        variety,
-        cultivationType,
-        plantingYear,
-        address: region,
-        region: region,
-        budBreakDate,
-        harvestTargetDate,
-        hasDrainage,
-      };
+    if (!farmInfo) {
+      Alert.alert('오류', '초기 농장 정보가 없습니다.');
+      return;
+    }
 
+    const info = {
+      ...farmInfo,
+      id: facilityId || farmInfo.id,
+      name: farmName,
+      variety,
+      cultivationType,
+      plantingYear,
+      address: region,
+      region: region,
+      budBreakDate,
+      harvestTargetDate,
+      hasDrainage,
+    };
+
+    try {
+      await farmmapApi.syncFarmGeo(farmInfo.id, region);
+    } catch (e) {
+      console.log('Geo Sync Failed silently');
+    }
+
+    await setFarmInfo(info);
+
+    if (isInitialSetup) {
       try {
-        await farmmapApi.syncFarmGeo(farmInfo.id, region);
+        await authApi.completeOnboarding();
+        // 로컬 user 상태에도 onboarding_completed 반영 → RootNavigator가 MainTab으로 자동 전환
+        if (user) {
+          await setUser({ ...(user as any), onboarding_completed: true });
+        }
       } catch (e) {
-        console.log('Geo Sync Failed silently');
+        console.warn('[FarmBasicInfo] completeOnboarding 실패:', e);
+        Alert.alert('오류', '초기 설정 완료 처리에 실패했습니다. 잠시 후 다시 시도해주세요.');
+        return;
       }
-
-      await setFarmInfo(info);
+    } else {
       Alert.alert('저장 완료', '농장 정보가 저장되었습니다.', [
         { text: '확인', onPress: () => navigation.goBack() }
       ]);
-    } else {
-      Alert.alert('오류', '초기 농장 정보가 없습니다.');
     }
   };
 
@@ -121,8 +172,9 @@ const FarmBasicInfoScreen = () => {
 
   return (
     <ScreenWrapper
-      title="농장 기본정보"
+      title={isInitialSetup ? '농장 정보를 입력해주세요' : '농장 기본정보'}
       showMenu={false}
+      showBack={!isInitialSetup}
       headerRight={
         <TouchableOpacity onPress={openHelp} style={{ padding: 4 }}>
           <MaterialCommunityIcons name="help-circle-outline" size={24} color="#6B7280" />
@@ -146,6 +198,15 @@ const FarmBasicInfoScreen = () => {
         ]}
       />
       <ScrollView style={styles.content}>
+        {isInitialSetup && (
+          <View style={styles.infoBanner}>
+            <Text style={styles.infoBannerIcon}>💡</Text>
+            <Text style={styles.infoBannerText}>
+              자세히 입력하실수록 AI 보고서 품질이 높아집니다.{'\n'}
+              농장명·주소·재배환경·맹아일은 필수 항목입니다.
+            </Text>
+          </View>
+        )}
         {/* 기본 정보 */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -262,23 +323,33 @@ const FarmBasicInfoScreen = () => {
           </View>
         </View>
 
-        {/* 토양정보 바로가기 */}
-        <TouchableOpacity
-          style={[styles.saveButton, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#3B82F6', marginBottom: 12 }]}
-          onPress={() => navigation.navigate('SoilEnvironment' as never)}
-        >
-          <Text style={[styles.saveButtonText, { color: '#3B82F6' }]}>토양 정보 조회하기</Text>
-        </TouchableOpacity>
+        {/* 토양정보 바로가기 (초기 설정 중에는 숨김) */}
+        {!isInitialSetup && (
+          <>
+            <TouchableOpacity
+              style={[styles.saveButton, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#3B82F6', marginBottom: 12 }]}
+              onPress={() => navigation.navigate('SoilEnvironment' as never)}
+            >
+              <Text style={[styles.saveButtonText, { color: '#3B82F6' }]}>토양 정보 조회하기</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.saveButton, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#10B981', marginBottom: 12 }]}
+              onPress={() => navigation.navigate('FarmDetail' as never)}
+            >
+              <Text style={[styles.saveButtonText, { color: '#10B981' }]}>농장 상세 정보 입력하기</Text>
+            </TouchableOpacity>
+          </>
+        )}
 
         <TouchableOpacity
-          style={[styles.saveButton, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#10B981', marginBottom: 12 }]}
-          onPress={() => navigation.navigate('FarmDetail' as never)}
+          style={[styles.saveButton, !requiredFilled && styles.saveButtonDisabled]}
+          onPress={handleSave}
+          disabled={!requiredFilled}
         >
-          <Text style={[styles.saveButtonText, { color: '#10B981' }]}>농장 상세 정보 입력하기</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>저장하기</Text>
+          <Text style={styles.saveButtonText}>
+            {isInitialSetup ? '저장하고 시작하기' : '저장하기'}
+          </Text>
         </TouchableOpacity>
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -383,10 +454,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
+  saveButtonDisabled: {
+    backgroundColor: '#9CA3AF',
+  },
   saveButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  infoBanner: {
+    flexDirection: 'row',
+    backgroundColor: '#FEF3C7',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  infoBannerIcon: {
+    fontSize: 20,
+    marginRight: 10,
+  },
+  infoBannerText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#92400E',
+    lineHeight: 19,
   },
   // Farm Map Button Styles
   farmMapButton: {
