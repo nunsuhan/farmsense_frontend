@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import authApi from '../services/authApi';
 
 const ForgotPasswordScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -45,16 +46,13 @@ const ForgotPasswordScreen: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // TODO: 실제 비밀번호 재설정 API 호출
-      // await authApi.resetPassword({ email: email.trim() });
+      // 백엔드 PasswordResetRequestView (SendGrid) 호출
+      // 응답: { success?, message } — 이메일 존재 여부와 무관하게 동일 메시지 (보안)
+      await authApi.resetPassword(email.trim());
 
-      // 임시로 1초 대기 (실제 API 호출 시뮬레이션)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // 성공 알림
       Alert.alert(
         '이메일 발송 완료',
-        `${email}로 비밀번호 재설정 링크가 발송되었습니다.\n\n이메일을 확인하여 비밀번호를 재설정해주세요.`,
+        `${email}로 임시 비밀번호를 발송했습니다.\n\n메일함에서 임시 비밀번호로 로그인 후, 설정에서 비밀번호를 변경해주세요.`,
         [
           {
             text: '확인',
@@ -64,10 +62,12 @@ const ForgotPasswordScreen: React.FC = () => {
       );
     } catch (error: any) {
       console.error('비밀번호 재설정 이메일 발송 실패:', error);
-      Alert.alert(
-        '발송 실패',
-        error.message || '이메일 발송 중 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.'
-      );
+      const msg =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        error?.message ||
+        '이메일 발송 중 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.';
+      Alert.alert('발송 실패', msg);
     } finally {
       setIsLoading(false);
     }

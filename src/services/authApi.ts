@@ -241,6 +241,13 @@ export const authApi = {
     return response.data;
   },
 
+  // 비밀번호 재설정 (이메일로 임시 비밀번호 발송 — Issue #1-3)
+  // 백엔드: POST /api/users/reset-password/ → PasswordResetRequestView (SendGrid)
+  resetPassword: async (email: string): Promise<{ success?: boolean; message: string }> => {
+    const response = await apiClient.post('/users/reset-password/', { email });
+    return response.data;
+  },
+
   // 비밀번호 변경
   changePassword: async (currentPassword: string, newPassword: string, _confirmPassword?: string) => {
     // Note: Backend API doesn't require confirm password, validation should be done on client
