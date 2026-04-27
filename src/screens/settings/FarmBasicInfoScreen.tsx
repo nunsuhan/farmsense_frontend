@@ -125,7 +125,7 @@ const FarmBasicInfoScreen = () => {
         await authApi.completeOnboarding();
         // 로컬 user 상태에도 onboarding_completed 반영 → RootNavigator가 MainTab으로 자동 전환
         if (user) {
-          await setUser({ ...(user as any), onboarding_completed: true });
+          await setUser({ ...user, onboarding_completed: true });
         }
         // 안전장치: flowMode 전환 타이밍 race 대비
         try {

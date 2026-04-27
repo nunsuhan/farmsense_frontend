@@ -92,7 +92,7 @@ export const RootNavigator = () => {
     //  3) 비로그인 + 게스트 모드(hasSeenOnboarding=true) → MainTab (로그인 유도는 MainTab 내부에서)
     //  4) 비로그인 + 신규 → OnboardingSlides + Auth
     const isLoggedIn = !!user;
-    const onboardingDone = !!(user && (user as any).onboarding_completed);
+    const onboardingDone = !!(user && user.onboarding_completed);
 
     if (!isInitialized) {
         return <SplashScreen />;

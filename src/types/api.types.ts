@@ -272,6 +272,10 @@ export interface User {
   name: string;
   email: string;
   facilityId?: string;
+  // Backend ProfileUpdateView GET 응답 필드 (commit 0b47912)
+  username?: string;
+  onboarding_completed?: boolean;
+  kakao_report_enabled?: boolean;
 }
 
 // ==================== Q&A / RAG Types ====================

@@ -5,6 +5,10 @@ export interface User {
     phone?: string;
     facilityId?: string;
     createdAt?: string;
+    // Backend ProfileUpdateView GET 응답 필드 (commit 0b47912)
+    username?: string;
+    onboarding_completed?: boolean;
+    kakao_report_enabled?: boolean;
 }
 
 export interface FarmInfo {

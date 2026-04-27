@@ -65,6 +65,9 @@ export interface UserProfile {
   name?: string; // 소셜 로그인용
   profile_image?: string; // 프로필 이미지
   profile?: UserProfileExtended; // 확장 프로필
+  // Backend ProfileUpdateView GET 응답 필드 (commit 0b47912 — Issue #4)
+  onboarding_completed?: boolean;
+  kakao_report_enabled?: boolean;
 }
 
 export interface SocialLoginRequest {
