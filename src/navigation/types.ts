@@ -12,6 +12,8 @@ export type RootStackParamList = {
   Login: undefined;
   SignUp: undefined;
   ForgotPassword: undefined;
+  // Issue #5: 휴대폰 인증 후 신규 사용자 분기
+  PhoneAuthBranch: undefined;
 
   // Main
   MainTab: { screen?: keyof MainTabParamList };

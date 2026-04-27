@@ -19,6 +19,7 @@ import { colors, shadows } from '../../theme/colors';
 import { useStore } from '../../store/useStore';
 import apiClient from '../../services/api';
 import AskReportBar from '../../components/home/AskReportBar';
+import OnboardingReminderBanner from '../../components/common/OnboardingReminderBanner';
 
 // 카드 타입별 색상
 const CARD_COLORS: Record<string, { bg: string; border: string; icon: string }> = {
@@ -132,6 +133,8 @@ const ReportHomeScreen = () => {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       >
+        <OnboardingReminderBanner />
+
         {loading && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />

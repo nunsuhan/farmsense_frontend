@@ -15,6 +15,9 @@ import { useStore } from '../../store/useStore'; // 전역 스토어 사용
 const SettingsMainScreen = () => {
   const navigation = useNavigation();
   const logout = useStore((state) => state.setUser); // 로그아웃 시 user null 처리
+  const user = useStore((state) => state.user);
+  // 농장 기본정보 미등록 시 빨간 점 배지로 시각적 유도 (Issue #5)
+  const needsOnboarding = !!user && !user.onboarding_completed;
 
   const settingsMenu = [
     {
@@ -114,23 +117,27 @@ const SettingsMainScreen = () => {
         </View>
 
         {/* 설정 메뉴 카드 */}
-        {settingsMenu.map((menu) => (
-          <TouchableOpacity
-            key={menu.id}
-            style={styles.menuCard}
-            onPress={() => handleMenuPress(menu.screen)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.iconContainer, { backgroundColor: `${menu.iconColor}15` }]}>
-              <Ionicons name={menu.icon as any} size={28} color={menu.iconColor} />
-            </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>{menu.title}</Text>
-              <Text style={styles.menuSubtitle}>{menu.subtitle}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={24} color="#9CA3AF" />
-          </TouchableOpacity>
-        ))}
+        {settingsMenu.map((menu) => {
+          const showDot = needsOnboarding && menu.screen === 'FarmBasicInfo';
+          return (
+            <TouchableOpacity
+              key={menu.id}
+              style={styles.menuCard}
+              onPress={() => handleMenuPress(menu.screen)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: `${menu.iconColor}15` }]}>
+                <Ionicons name={menu.icon as any} size={28} color={menu.iconColor} />
+                {showDot && <View style={styles.redDot} />}
+              </View>
+              <View style={styles.menuTextContainer}>
+                <Text style={styles.menuTitle}>{menu.title}</Text>
+                <Text style={styles.menuSubtitle}>{menu.subtitle}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color="#9CA3AF" />
+            </TouchableOpacity>
+          );
+        })}
 
         {/* 앱 정보 (Clickable) */}
         <TouchableOpacity
@@ -209,6 +216,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+    position: 'relative',
+  },
+  redDot: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#EF4444',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
   menuTextContainer: {
     flex: 1,

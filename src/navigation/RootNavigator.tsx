@@ -21,6 +21,7 @@ import FarmRegistrationScreen from '../screens/onboarding/FarmRegistrationScreen
 // OnboardingSetupScreen 래퍼 dead code화 — FarmBasicInfoScreen을 setup 모드로 직접 사용
 // import OnboardingSetupScreen from '../screens/onboarding/OnboardingSetupScreen';
 import FarmBasicInfoScreen from '../screens/settings/FarmBasicInfoScreen';
+import PhoneAuthBranchScreen from '../screens/onboarding/PhoneAuthBranchScreen';
 
 // Core Features
 import { SmartScannerScreen } from '../screens/smart-lens/SmartScannerScreen';
@@ -86,36 +87,24 @@ export const RootNavigator = () => {
     const isInitialized = useStore(state => state.isInitialized);
     const hasSeenOnboarding = useStore(state => state.hasSeenOnboarding);
 
-    // 로그인 상태 + onboarding_completed 플래그로 분기:
-    //  1) 로그인됨 + onboarding_completed=true → MainTab
-    //  2) 로그인됨 + onboarding_completed=false → OnboardingSetup 강제
-    //  3) 비로그인 + 게스트 모드(hasSeenOnboarding=true) → MainTab (로그인 유도는 MainTab 내부에서)
-    //  4) 비로그인 + 신규 → OnboardingSlides + Auth
+    // 로그인 상태로 분기 (Issue #5 — flowMode='setup' 강제 분기 제거):
+    //  1) 로그인됨 → MainTab (onboarding 미완은 배너+빨간점으로 유도, 강제 X)
+    //  2) 비로그인 + 게스트 모드(hasSeenOnboarding=true) → MainTab
+    //  3) 비로그인 + 신규 → OnboardingSlides + Auth
+    // 신규 가입자(is_new_user=true)는 LoginScreen에서 navigation.reset → PhoneAuthBranch.
     const isLoggedIn = !!user;
-    const onboardingDone = !!(user && user.onboarding_completed);
 
     if (!isInitialized) {
         return <SplashScreen />;
     }
 
-    const flowMode: 'setup' | 'main' | 'intro' =
-        isLoggedIn && !onboardingDone
-            ? 'setup'
-            : (isLoggedIn || hasSeenOnboarding ? 'main' : 'intro');
+    const flowMode: 'main' | 'intro' =
+        (isLoggedIn || hasSeenOnboarding) ? 'main' : 'intro';
 
     return (
         <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: false }} id={undefined}>
-                {flowMode === 'setup' ? (
-                    <Stack.Group>
-                        {/* 회원가입 후 필수 설정 강제 — 기존 FarmBasicInfo 재사용, initialParams로 첫 진입 모드 활성화 */}
-                        <Stack.Screen
-                            name="FarmBasicInfo"
-                            component={FarmBasicInfoScreen}
-                            initialParams={{ isInitialSetup: true }}
-                        />
-                    </Stack.Group>
-                ) : flowMode === 'main' ? (
+                {flowMode === 'main' ? (
                     <Stack.Group>
                         {/* Main Tab (Guest or User) */}
                         <Stack.Screen name="MainTab" component={MainTabNavigator} />
@@ -140,6 +129,8 @@ export const RootNavigator = () => {
                         <Stack.Screen name="Login" component={LoginScreen} />
                         <Stack.Screen name="SignUp" component={SignUpScreen} />
                         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+                        {/* Issue #5: 휴대폰 인증 후 신규 사용자 분기 화면 */}
+                        <Stack.Screen name="PhoneAuthBranch" component={PhoneAuthBranchScreen} />
 
                         {/* Onboarding Flow (Post-Login or Post-Guest-Entry) */}
                         <Stack.Screen name="PermissionRequest" component={PermissionRequestScreen} />
@@ -181,6 +172,8 @@ export const RootNavigator = () => {
                         <Stack.Screen name="Login" component={LoginScreen} />
                         <Stack.Screen name="SignUp" component={SignUpScreen} />
                         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+                        {/* Issue #5: intro group에서도 휴대폰 인증 후 분기 가능 */}
+                        <Stack.Screen name="PhoneAuthBranch" component={PhoneAuthBranchScreen} />
                     </Stack.Group>
                 )}
             </Stack.Navigator>

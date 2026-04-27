@@ -128,7 +128,12 @@ const LoginScreen: React.FC = () => {
         // 프로필 로드 실패해도 로그인은 진행
       }
 
-      navigation.reset({ index: 0, routes: [{ name: 'MainTab' }] });
+      // Issue #5: 신규 사용자는 분기 화면으로, 기존 사용자는 RootNavigator가 onboarding_completed로 분기
+      if (res.is_new_user) {
+        navigation.reset({ index: 0, routes: [{ name: 'PhoneAuthBranch' }] });
+      } else {
+        navigation.reset({ index: 0, routes: [{ name: 'MainTab' }] });
+      }
     } catch (e: any) {
       Alert.alert('인증 실패', e?.response?.data?.error || e?.message || '인증번호를 확인해주세요.');
     }
