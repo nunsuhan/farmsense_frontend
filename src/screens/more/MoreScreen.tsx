@@ -56,15 +56,8 @@ const MENU_ITEMS = [
     iconColor: '#EC4899',
     screen: 'Help',
   },
-  {
-    id: 'profile',
-    title: '내 정보',
-    subtitle: '계정 정보, 비밀번호 변경',
-    icon: 'person-outline',
-    iconBg: '#EDE9FE',
-    iconColor: '#8B5CF6',
-    screen: 'AccountSettings',
-  },
+  // '내 정보' (AccountSettings) 항목은 내농장 탭(SettingsMain)에서 제공.
+  // 더보기 탭에는 중복 노출하지 않음.
   {
     id: 'appinfo',
     title: '앱 정보',
