@@ -18,6 +18,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { authApi } from '../services/authApi';
+import AddressSearchModal from '../components/AddressSearchModal';
 
 const SignUpScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -32,6 +33,7 @@ const SignUpScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [showAddressSearch, setShowAddressSearch] = useState(false);
 
   // 입력 필드 변경 처리
   const handleInputChange = (field: string, value: string) => {
@@ -241,13 +243,16 @@ const SignUpScreen: React.FC = () => {
               {/* 주소 */}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>주소 (선택)</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="농장 주소를 입력하세요"
-                  placeholderTextColor="#9CA3AF"
-                  value={formData.address}
-                  onChangeText={(value) => handleInputChange('address', value)}
-                />
+                <TouchableOpacity onPress={() => setShowAddressSearch(true)}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="탭하여 주소 검색 (도로명 / 건물명 / 지번)"
+                    placeholderTextColor="#9CA3AF"
+                    value={formData.address}
+                    editable={false}
+                    pointerEvents="none"
+                  />
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -302,6 +307,15 @@ const SignUpScreen: React.FC = () => {
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
+
+      <AddressSearchModal
+        visible={showAddressSearch}
+        onClose={() => setShowAddressSearch(false)}
+        onSelectAddress={(addr) => {
+          handleInputChange('address', addr.roadAddr || addr.jibunAddr);
+          setShowAddressSearch(false);
+        }}
+      />
     </SafeAreaView>
   );
 };

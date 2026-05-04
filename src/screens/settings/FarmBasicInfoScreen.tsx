@@ -20,6 +20,7 @@ import { useHelpModal } from '../../hooks/useHelpModal';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { farmmapApi } from '../../services/farmmapApi';
 import { authApi } from '../../services/authApi';
+import AddressSearchModal from '../../components/AddressSearchModal';
 
 type FarmBasicInfoRouteParams = {
   FarmBasicInfo: { isInitialSetup?: boolean };
@@ -46,6 +47,9 @@ const FarmBasicInfoScreen = () => {
   const [budBreakDate, setBudBreakDate] = useState('');
   const [harvestTargetDate, setHarvestTargetDate] = useState('');
   const [hasDrainage, setHasDrainage] = useState(false);
+
+  // 주소 검색 모달
+  const [showAddressSearch, setShowAddressSearch] = useState(false);
 
   // 초기 로드
   useEffect(() => {
@@ -231,32 +235,15 @@ const FarmBasicInfoScreen = () => {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>농장 주소 (위치 연동)</Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity onPress={() => setShowAddressSearch(true)}>
               <TextInput
-                style={[styles.input, { flex: 1 }]}
+                style={styles.input}
                 value={region}
-                onChangeText={setRegion}
-                placeholder="예: 경북 김천시 농소면 월곡리 123"
+                placeholder="탭하여 주소 검색 (도로명 / 건물명 / 지번)"
+                editable={false}
+                pointerEvents="none"
               />
-              <TouchableOpacity
-                style={styles.checkButton}
-                onPress={async () => {
-                  if (!region) return Alert.alert('알림', '주소를 입력해주세요.');
-                  if (!currentFarmId) {
-                    Alert.alert('알림', '농장을 먼저 등록해주세요.');
-                    return;
-                  }
-                  try {
-                    const result = await farmmapApi.syncFarmGeo(currentFarmId, region);
-                    Alert.alert('위치 확인', `${result.message}\n(좌표: ${result.coordinates.lat}, ${result.coordinates.lon})`);
-                  } catch (e) {
-                    Alert.alert('오류', '주소를 찾을 수 없습니다.');
-                  }
-                }}
-              >
-                <Text style={styles.checkButtonText}>주소 확인</Text>
-              </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           </View>
 
           <TouchableOpacity
@@ -368,6 +355,24 @@ const FarmBasicInfoScreen = () => {
         </TouchableOpacity>
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      <AddressSearchModal
+        visible={showAddressSearch}
+        onClose={() => setShowAddressSearch(false)}
+        onSelectAddress={async (addr) => {
+          const selected = addr.roadAddr || addr.jibunAddr;
+          setRegion(selected);
+          setShowAddressSearch(false);
+          // 농장이 이미 존재하면 좌표도 자동 동기화
+          if (currentFarmId) {
+            try {
+              await farmmapApi.syncFarmGeo(currentFarmId, selected);
+            } catch (e) {
+              console.warn('[FarmBasicInfo] syncFarmGeo 실패 (non-blocking):', e);
+            }
+          }
+        }}
+      />
     </ScreenWrapper>
   );
 };
