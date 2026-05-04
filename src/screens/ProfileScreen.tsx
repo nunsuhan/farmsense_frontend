@@ -350,14 +350,8 @@ const ProfileScreen: React.FC = () => {
                   onPress: async () => {
                     if (authApi && authApi.logout) await authApi.logout();
 
-                    // Reset to default
-                    await setFarmInfo({
-                      id: 'farm-test',
-                      name: '초기화된 농장',
-                      userId: 'guest',
-                      region: 'unknown',
-                      crop: 'grape'
-                    });
+                    // Reset to null — 인증 흐름에서 loadFarms()로 다시 채움
+                    await setFarmInfo(null);
 
                     if (setUser) setUser(null);
                     setNewFacilityId('farm-test');

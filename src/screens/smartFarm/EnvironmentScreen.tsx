@@ -4,13 +4,15 @@ import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { dssApi } from '../../services/dssApi';
 import { useStore } from '../../store/useStore';
 import { Ionicons } from '@expo/vector-icons';
+import NoFarmFallback from '../../components/NoFarmFallback';
 
 const EnvironmentScreen = () => {
-    const farmId = useStore((state) => state.farmInfo?.id) || 'farm-123';
+    const farmId = useStore((state) => state.currentFarmId);
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<any>(null);
 
     const fetchData = async () => {
+        if (!farmId) return;
         setLoading(true);
         try {
             const res = await dssApi.getEnvironment(farmId);
@@ -26,6 +28,10 @@ const EnvironmentScreen = () => {
     useEffect(() => {
         fetchData();
     }, [farmId]);
+
+    if (!farmId) {
+        return <NoFarmFallback />;
+    }
 
     const getStatusColor = (level: string) => {
         switch (level) {

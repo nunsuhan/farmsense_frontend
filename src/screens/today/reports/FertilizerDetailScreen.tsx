@@ -53,9 +53,13 @@ const FertilizerDetailScreen = () => {
         {
           text: '시비 완료',
           onPress: async () => {
+            if (!farmId) {
+              Alert.alert('알림', '농장을 먼저 등록해주세요.');
+              return;
+            }
             try {
               setApplying((prev) => ({ ...prev, [idx]: true }));
-              const fid = farmId || 'farm-123';
+              const fid = farmId;
               await gapFertilizerApi.createRecord(fid, {
                 fertilizer_name: rec.fertilizer_name,
                 amount_kg: totalKg,
@@ -85,9 +89,13 @@ const FertilizerDetailScreen = () => {
   }, []);
 
   const loadData = async () => {
+    if (!farmId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
-      const fid = farmId || 'farm-123';
+      const fid = farmId;
 
       const [recResult, auditResult] = await Promise.allSettled([
         gapFertilizerApi.getRecommendations(fid, {

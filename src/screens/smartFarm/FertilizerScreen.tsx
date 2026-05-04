@@ -3,13 +3,15 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from 're
 import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { dssApi } from '../../services/dssApi';
 import { useStore } from '../../store/useStore';
+import NoFarmFallback from '../../components/NoFarmFallback';
 
 const FertilizerScreen = () => {
-    const farmId = useStore((state) => state.farmInfo?.id) || 'farm-123';
+    const farmId = useStore((state) => state.currentFarmId);
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<any>(null);
 
     const fetchRecommendation = async () => {
+        if (!farmId) return;
         setLoading(true);
         try {
             // Mocking input data
@@ -36,6 +38,10 @@ const FertilizerScreen = () => {
     useEffect(() => {
         fetchRecommendation();
     }, [farmId]);
+
+    if (!farmId) {
+        return <NoFarmFallback />;
+    }
 
     return (
         <ScreenWrapper title="비료 관리 (시비처방)" showBack={true}>

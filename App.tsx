@@ -38,17 +38,15 @@ export default function App() {
         // RootNavigator가 flowMode(intro/setup/main)로 단일 진입 담당.
         // OnboardingScreen(결제 6스텝)은 dead code화.
 
-        // ✅ farmInfo 전파 확인
+        // 인증된 사용자인데 농장 목록 비어있으면 fetch (앱 재시작 케이스)
         const currentState = useStore.getState();
-        console.log('📊 [App] Current farmInfo:', currentState.farmInfo);
-        console.log('🆔 [App] farmId:', currentState.farmInfo?.id);
-
-        if (!currentState.farmInfo?.id) {
-          console.error('❌ [App] farmInfo.id is missing!');
-        } else if (currentState.farmInfo.id === 'farm-123') {
-          console.log('✅ [App] Default farmId (farm-123) confirmed');
-        } else {
-          console.log('✅ [App] Custom farmId confirmed:', currentState.farmInfo.id);
+        if (currentState.user && currentState.farmList.length === 0) {
+          try {
+            const result = await currentState.loadFarms();
+            console.log('[App] loadFarms result:', result);
+          } catch (e) {
+            console.warn('[App] loadFarms failed (non-blocking):', e);
+          }
         }
 
         setIsReady(true);

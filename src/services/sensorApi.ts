@@ -52,7 +52,7 @@ export interface RegisterSensorRequest {
  * GET /api/sensors/latest?farmId={farmId}
  */
 export async function getAllSensorData(
-  farmId: string,
+  farmId: string | number,
   retryCount: number = 0
 ): Promise<SensorData | null> {
   try {

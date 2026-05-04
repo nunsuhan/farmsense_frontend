@@ -6,7 +6,7 @@ const DSS_BASE = '/v1/dss/farms';
 
 export const dssApi = {
     // 5. 대시보드
-    getDashboard: async (farmId: string) => {
+    getDashboard: async (farmId: string | number) => {
         try {
             const response = await apiClient.get(`${DSS_BASE}/${farmId}/dashboard/`);
             return response.data;
@@ -17,7 +17,7 @@ export const dssApi = {
     },
 
     // 3. 생육단계
-    getGrowthStage: async (farmId: string, variety: string = 'shine_muscat') => {
+    getGrowthStage: async (farmId: string | number, variety: string = 'shine_muscat') => {
         try {
             const response = await apiClient.get(`${DSS_BASE}/${farmId}/growth-stage/?variety=${variety}`);
             return response.data;
@@ -28,31 +28,31 @@ export const dssApi = {
     },
 
     // 1. 관수 권장량
-    getIrrigation: async (farmId: string, data: any) => {
+    getIrrigation: async (farmId: string | number, data: any) => {
         const response = await apiClient.post(`${DSS_BASE}/${farmId}/irrigation/`, data);
         return response.data;
     },
 
     // 1. 연간 관수 계획
-    getIrrigationPlan: async (farmId: string, areaPyeong: number) => {
+    getIrrigationPlan: async (farmId: string | number, areaPyeong: number) => {
         const response = await apiClient.get(`${DSS_BASE}/${farmId}/irrigation/plan/?area_pyeong=${areaPyeong}`);
         return response.data;
     },
 
     // 2. 비료 권장량
-    getFertilizer: async (farmId: string, data: any) => {
+    getFertilizer: async (farmId: string | number, data: any) => {
         const response = await apiClient.post(`${DSS_BASE}/${farmId}/fertilizer/`, data);
         return response.data;
     },
 
     // 2. 증상 진단
-    diagnoseSymptom: async (farmId: string, data: any) => {
+    diagnoseSymptom: async (farmId: string | number, data: any) => {
         const response = await apiClient.post(`${DSS_BASE}/${farmId}/fertilizer/diagnose/`, data);
         return response.data;
     },
 
     // 4. 살포량 계산
-    getSprayVolume: async (farmId: string, data: any) => {
+    getSprayVolume: async (farmId: string | number, data: any) => {
         const response = await apiClient.post(`${DSS_BASE}/${farmId}/spray-volume/`, data);
         return response.data;
     },
@@ -60,13 +60,13 @@ export const dssApi = {
     // ===== 신규 추가 (Jan 2026) =====
 
     // 환경관리 (대시보드 활용)
-    getEnvironment: async (farmId: string) => {
+    getEnvironment: async (farmId: string | number) => {
         const response = await apiClient.get(`${DSS_BASE}/${farmId}/dashboard/`);
         return response.data;
     },
 
     // 수확예측 (수동 입력)
-    getYieldPrediction: async (farmId: string, data: {
+    getYieldPrediction: async (farmId: string | number, data: {
         variety: string;
         cluster_count: number;
         avg_cluster_weight?: number;

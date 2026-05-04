@@ -28,7 +28,7 @@ const PredictionReportScreen = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const fid = parseInt(farmId || '0', 10);
+      const fid = farmId ?? 0;
       if (!fid) return;
 
       const [quickRes, realtimeRes, growthRes] = await Promise.allSettled([

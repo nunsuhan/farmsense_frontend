@@ -126,7 +126,7 @@ const AutoLogScreen = () => {
 
     // 3. 관수 이력 (DSS)
     try {
-      const dssData = await dssApi.getDashboard(farmId || '');
+      const dssData = await dssApi.getDashboard(farmId ?? 0);
       if (dssData && dssData.irrigation) {
         autoItems.push({
           id: 'i1', category: 'irrigation', icon: 'water-outline',
@@ -142,7 +142,7 @@ const AutoLogScreen = () => {
 
     // 4. 살포 이력 (Spray API)
     try {
-      const farmIdNum = parseInt(farmId || '0', 10);
+      const farmIdNum = farmId ?? 0;
       if (farmIdNum > 0) {
         const sprayHistory = await sprayApi.getSprayHistory(farmIdNum);
         const todaySessions = (sprayHistory.sessions || []).filter((s) => {

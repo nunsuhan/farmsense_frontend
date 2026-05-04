@@ -25,7 +25,7 @@ export interface ReportSummary {
 /**
  * 1. 관개 데이터: DSS dashboard에서 CWSI/VPD 추출
  */
-const fetchIrrigation = async (farmId: string) => {
+const fetchIrrigation = async (farmId: string | number) => {
   const data = await dssApi.getDashboard(farmId);
   if (!data) return null;
   return {
@@ -57,8 +57,8 @@ const fetchDiagnosis = async () => {
 /**
  * 3. 병해 예측(PMI): disease_prediction realtime API
  */
-const fetchPrediction = async (farmId: string) => {
-  const farmIdNum = parseInt(farmId, 10);
+const fetchPrediction = async (farmId: string | number) => {
+  const farmIdNum = typeof farmId === 'number' ? farmId : parseInt(farmId, 10);
   if (isNaN(farmIdNum)) return null;
 
   const response = await apiClient.get(`/disease/farms/${farmIdNum}/disease/quick/`);
@@ -73,7 +73,7 @@ const fetchPrediction = async (farmId: string) => {
 /**
  * 4. DSS 알림 상태: dashboard에서 alert 정보 추출
  */
-const fetchDSS = async (farmId: string) => {
+const fetchDSS = async (farmId: string | number) => {
   const data = await dssApi.getDashboard(farmId);
   if (!data) return null;
   return {
@@ -104,8 +104,8 @@ const fetchSensorStatus = async () => {
 /**
  * 6. 살포/농약: spray history에서 안전기간 추출
  */
-const fetchSpray = async (farmId: string) => {
-  const farmIdNum = parseInt(farmId, 10);
+const fetchSpray = async (farmId: string | number) => {
+  const farmIdNum = typeof farmId === 'number' ? farmId : parseInt(farmId, 10);
   if (isNaN(farmIdNum)) return null;
 
   const result = await sprayApi.getSafetyStatus(farmIdNum);
@@ -115,7 +115,7 @@ const fetchSpray = async (farmId: string) => {
 /**
  * 8. GAP 비료: 추천 + 감사 데이터에서 요약 추출
  */
-const fetchFertilizer = async (farmId: string) => {
+const fetchFertilizer = async (farmId: string | number) => {
   const [recResult, auditResult] = await Promise.allSettled([
     gapFertilizerApi.getRecommendations(farmId),
     gapFertilizerApi.getAudit(farmId),
@@ -145,7 +145,7 @@ const fetchFertilizer = async (farmId: string) => {
 /**
  * 7. MQTT 실시간: latest endpoint로 연결 상태 확인
  */
-const fetchRealtime = async (farmId: string) => {
+const fetchRealtime = async (farmId: string | number) => {
   const response = await apiClient.get(`/mqtt/latest/${farmId}/`);
   const data = response.data;
 
@@ -170,7 +170,7 @@ export const reportApi = {
    * 8개 도메인 보고서 요약 데이터를 병렬 조회
    * 개별 API 실패 시 해당 카드만 null (다른 카드는 정상 표시)
    */
-  getReportSummary: async (farmId: string): Promise<ReportSummary> => {
+  getReportSummary: async (farmId: string | number): Promise<ReportSummary> => {
     const results = await Promise.allSettled([
       fetchIrrigation(farmId),
       fetchDiagnosis(),

@@ -8,6 +8,7 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getSectors } from '../services/sectorApi';
+import { farmApi, Farm } from '../services/farmApi';
 
 import {
   User,
@@ -31,8 +32,15 @@ interface AppState {
   setAvatarId: (id: string) => Promise<void>;
 
   // Farm Info
+  /** @deprecated Use currentFarmId + farmList. Kept for backward compat during migration. */
   farmInfo: FarmInfo | null;
   setFarmInfo: (info: FarmInfo | null) => Promise<void>;
+
+  // Multi-farm support (PR-1)
+  farmList: Farm[];
+  currentFarmId: number | null;
+  loadFarms: () => Promise<{ success: boolean; count?: number; error?: any }>;
+  setCurrentFarmId: (id: number) => void;
 
   // Sensor Data (실시간)
   sensorData: SensorData | null;
@@ -80,6 +88,10 @@ const STORAGE_KEYS = {
   ONBOARDING: '@farmsense_onboarding',
 } as const;
 
+// Schema version for AsyncStorage migration (PR-1: legacy string id → integer PK)
+const STORE_VERSION = 2;
+const VERSION_KEY = '@farmsense:store_version';
+
 // ============================================
 // Zustand Store
 // ============================================
@@ -112,6 +124,65 @@ export const useStore = create<AppState>((set, get) => ({
     } else {
       await AsyncStorage.removeItem(STORAGE_KEYS.FARM_INFO);
     }
+  },
+
+  // Multi-farm support (PR-1)
+  farmList: [],
+  currentFarmId: null,
+  loadFarms: async () => {
+    try {
+      const farms = await farmApi.getMyFarms();
+      set({ farmList: farms });
+
+      if (farms.length === 0) {
+        set({ currentFarmId: null, farmInfo: null });
+        await AsyncStorage.removeItem(STORAGE_KEYS.FARM_INFO);
+        return { success: true, count: 0 };
+      }
+
+      // 가장 최근 created_at 자동 선택
+      const sorted = [...farms].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      const primary = sorted[0];
+
+      const prevFarmInfo = get().farmInfo;
+      const compatFarmInfo: FarmInfo = {
+        ...(prevFarmInfo ?? { id: primary.id, userId: '', name: '', region: '' } as FarmInfo),
+        id: primary.id,
+        name: primary.name,
+        address: primary.address,
+      } as FarmInfo;
+
+      set({
+        currentFarmId: primary.id,
+        farmInfo: compatFarmInfo,
+      });
+
+      await AsyncStorage.setItem(STORAGE_KEYS.FARM_INFO, JSON.stringify(compatFarmInfo));
+      return { success: true, count: farms.length };
+    } catch (error) {
+      console.error('[useStore] loadFarms failed:', error);
+      return { success: false, error };
+    }
+  },
+  setCurrentFarmId: (id) => {
+    const { farmList, farmInfo: prevFarmInfo } = get();
+    const farm = farmList.find(f => f.id === id);
+    if (!farm) {
+      console.warn(`[useStore] setCurrentFarmId: farm ${id} not in farmList`);
+      return;
+    }
+
+    const compatFarmInfo: FarmInfo = {
+      ...(prevFarmInfo ?? { id: farm.id, userId: '', name: '', region: '' } as FarmInfo),
+      id: farm.id,
+      name: farm.name,
+      address: farm.address,
+    } as FarmInfo;
+
+    set({ currentFarmId: id, farmInfo: compatFarmInfo });
+    AsyncStorage.setItem(STORAGE_KEYS.FARM_INFO, JSON.stringify(compatFarmInfo));
   },
 
   // Sensor Data (실시간 - 메모리에만 저장)
@@ -216,6 +287,29 @@ export const useStore = create<AppState>((set, get) => ({
 
 export const initializeStore = async () => {
   try {
+    // === Schema Version Migration (PR-1: legacy string id → integer PK) ===
+    const storedVersionRaw = await AsyncStorage.getItem(VERSION_KEY);
+    const storedVersion = storedVersionRaw ? parseInt(storedVersionRaw, 10) : 1;
+
+    if (storedVersion < STORE_VERSION) {
+      console.log(`[useStore] Migrating store v${storedVersion} → v${STORE_VERSION}: resetting farm + auth (force re-login)`);
+      await AsyncStorage.multiRemove([
+        STORAGE_KEYS.FARM_INFO,
+        STORAGE_KEYS.USER,
+        STORAGE_KEYS.SECTORS,
+      ]);
+      await AsyncStorage.setItem(VERSION_KEY, String(STORE_VERSION));
+      useStore.setState({
+        farmInfo: null,
+        farmList: [],
+        currentFarmId: null,
+        user: null,
+        sectors: [],
+        isInitialized: true,
+      });
+      return;
+    }
+
     // Load user
     const userJson = await AsyncStorage.getItem(STORAGE_KEYS.USER);
     if (userJson) {
@@ -233,19 +327,14 @@ export const initializeStore = async () => {
     const farmInfoJson = await AsyncStorage.getItem(STORAGE_KEYS.FARM_INFO);
     if (farmInfoJson) {
       const farmInfo: FarmInfo = JSON.parse(farmInfoJson);
-      useStore.setState({ farmInfo });
-    } else {
-      // 기본 농장 정보 설정 (테스트용)
-      const defaultFarmInfo: FarmInfo = {
-        id: 'farm-123',
-        userId: 'user-123',
-        name: '테스트 농장',
-        region: '서울',
-        crop: '포도',
-      };
-      useStore.setState({ farmInfo: defaultFarmInfo });
-      await AsyncStorage.setItem(STORAGE_KEYS.FARM_INFO, JSON.stringify(defaultFarmInfo));
+      // 추가 안전망: 혹시 string id가 들어 있으면 무시 (마이그레이션 누락 케이스 방어)
+      if (typeof farmInfo.id === 'number') {
+        useStore.setState({ farmInfo, currentFarmId: farmInfo.id });
+      } else {
+        await AsyncStorage.removeItem(STORAGE_KEYS.FARM_INFO);
+      }
     }
+    // 농장 정보가 없으면 null 유지 — 인증 흐름에서 loadFarms()로 채움
 
     // Load sectors
     const sectorsJson = await AsyncStorage.getItem(STORAGE_KEYS.SECTORS);

@@ -25,6 +25,7 @@ import { colors } from '../../theme/colors';
 const TodayReportScreen = () => {
   const navigation = useNavigation<any>();
   const farmInfo = useStore((s) => s.farmInfo);
+  const farmId = useStore((s) => s.currentFarmId);
   const sensorData = useStore((s) => s.sensorData);
   const [report, setReport] = useState<ReportSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,15 +33,19 @@ const TodayReportScreen = () => {
   const [showHelp, setShowHelp] = useState<string | null>(null);
 
   const loadReport = useCallback(async () => {
+    if (!farmId) {
+      setLoading(false);
+      return;
+    }
     try {
-      const data = await reportApi.getReportSummary(farmInfo?.id || 'farm-123');
+      const data = await reportApi.getReportSummary(farmId);
       setReport(data);
     } catch (e) {
       console.warn('Report load failed:', e);
     } finally {
       setLoading(false);
     }
-  }, [farmInfo?.id]);
+  }, [farmId]);
 
   useEffect(() => {
     loadReport();

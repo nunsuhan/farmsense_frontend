@@ -19,7 +19,7 @@ interface ReverseAnalysisState {
     // 액션
     setTargetProduction: (value: number) => void;
     setDateRange: (start: string, end: string) => void;
-    runAnalysis: (farmId: string, crpsnSn: string) => Promise<void>;
+    runAnalysis: (farmId: string | number, crpsnSn: string) => Promise<void>;
     reset: () => void;
 }
 
@@ -39,7 +39,7 @@ export const useReverseAnalysisStore = create<ReverseAnalysisState>((set, get) =
 
         try {
             const request: TargetAnalysisRequest = {
-                fclty_id: farmId,
+                fclty_id: String(farmId),
                 crpsn_sn: crpsnSn,
                 target_production: get().targetProduction,
                 fixplntng_de: get().startDate,

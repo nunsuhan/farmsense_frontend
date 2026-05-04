@@ -56,15 +56,16 @@ const SectorManagementScreen: React.FC = () => {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation(); // Hook for back navigation
     const { sectors, addSector, removeSector, updateSector, fetchSectors, farmInfo } = useStore();
+    const currentFarmId = useStore((s) => s.currentFarmId);
 
     // Fetch sectors on mount
     useEffect(() => {
         const loadMapData = async () => {
-            const farmId = farmInfo?.id || 'farm-123';
-            await fetchSectors(farmId);
-            if (farmId) {
-                try {
-                    const mapData = await farmmapApi.getFarmMapData(farmId);
+            if (!currentFarmId) return;
+            const farmId = currentFarmId;
+            await fetchSectors(String(farmId));
+            try {
+                const mapData = await farmmapApi.getFarmMapData(farmId);
                     if (mapData && mapData.center) {
                         mapRef.current?.animateToRegion({
                             latitude: mapData.center.lat,
@@ -73,13 +74,12 @@ const SectorManagementScreen: React.FC = () => {
                             longitudeDelta: 0.01,
                         }, 500);
                     }
-                } catch (e) {
-                    // Farm map data 로드 실패 시 현재 위치 사용
-                }
+            } catch (e) {
+                // Farm map data 로드 실패 시 현재 위치 사용
             }
         };
         loadMapData();
-    }, []);
+    }, [currentFarmId]);
 
     // Map State
     const [region, setRegion] = useState({

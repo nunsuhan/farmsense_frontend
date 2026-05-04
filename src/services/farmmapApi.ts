@@ -39,7 +39,7 @@ export const farmmapApi = {
    * [2] 농장 주소 입력 -> 지도에 표시
    * POST /api/farms/{farm_id}/sync-geo/
    */
-  syncFarmGeo: async (farmId: string, address: string): Promise<SyncFarmGeoResponse> => {
+  syncFarmGeo: async (farmId: number, address: string): Promise<SyncFarmGeoResponse> => {
     console.log(`📍 [FarmMap] Syncing Geo for Farm: ${farmId}, Address: ${address}`);
     const response = await apiClient.post<SyncFarmGeoResponse>(`/farms/${farmId}/sync-geo/`, { address });
     console.log('✅ [FarmMap] Farm Geo Synced:', response.data);
@@ -50,7 +50,7 @@ export const farmmapApi = {
    * [3] 지도 표시 데이터 조회
    * GET /api/farms/{farm_id}/map-data/
    */
-  getFarmMapData: async (farmId: string): Promise<FarmMapDataResponse> => {
+  getFarmMapData: async (farmId: number): Promise<FarmMapDataResponse> => {
     console.log(`🗺️ [FarmMap] Fetching Map Data for Farm: ${farmId}`);
     const response = await apiClient.get<FarmMapDataResponse>(`/farms/${farmId}/map-data/`);
     console.log('✅ [FarmMap] Map Data Loaded');

@@ -159,7 +159,7 @@ const PredictionDetailScreen = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const fid = parseInt(farmId || '0', 10);
+      const fid = farmId ?? 0;
       if (!fid) return;
 
       const [quickRes, fullRes, seasonRes, autoRes] = await Promise.allSettled([

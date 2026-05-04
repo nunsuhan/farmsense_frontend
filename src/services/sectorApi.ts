@@ -155,8 +155,11 @@ export async function updateSector(
             throw new Error('최소 3개의 좌표가 필요합니다.');
         }
 
-        // farmId를 data에서 추출
-        const farmId = data.farmId || 'farm-123'; // 기본값
+        // farmId를 data에서 추출 (필수)
+        const farmId = data.farmId;
+        if (!farmId) {
+            throw new Error('updateSector: farmId is required');
+        }
         const response = await api.put<FarmSector>(`/farms/${farmId}/sectors/${sectorId}/`, data);
         console.log('✅ [sectorApi] Sector updated:', sectorId);
         return response.data;
@@ -168,12 +171,11 @@ export async function updateSector(
 
 /**
  * 구역 삭제
- * DELETE /api/sectors/{sectorId}
+ * DELETE /api/farms/{farmId}/sectors/{sectorId}/
  */
-export async function deleteSector(sectorId: string): Promise<void> {
+export async function deleteSector(farmId: string | number, sectorId: string): Promise<void> {
     try {
-        // farmId 필요 - 임시로 farm-123 사용
-        await api.delete(`/farms/farm-123/sectors/${sectorId}/`);
+        await api.delete(`/farms/${farmId}/sectors/${sectorId}/`);
         console.log('✅ [sectorApi] Sector deleted:', sectorId);
     } catch (error) {
         console.error('❌ [sectorApi] deleteSector failed:', error);
@@ -182,13 +184,12 @@ export async function deleteSector(sectorId: string): Promise<void> {
 }
 
 /**
- * 구역 상세 조회 (선택적 - 서버에서 지원하는 경우)
- * GET /api/sectors/{sectorId}
+ * 구역 상세 조회
+ * GET /api/farms/{farmId}/sectors/{sectorId}/
  */
-export async function getSectorById(sectorId: string): Promise<FarmSector> {
+export async function getSectorById(farmId: string | number, sectorId: string): Promise<FarmSector> {
     try {
-        // farmId 필요 - 임시로 farm-123 사용
-        const response = await api.get<FarmSector>(`/farms/farm-123/sectors/${sectorId}/`);
+        const response = await api.get<FarmSector>(`/farms/${farmId}/sectors/${sectorId}/`);
         return response.data;
     } catch (error) {
         console.error('❌ [sectorApi] getSectorById failed:', error);

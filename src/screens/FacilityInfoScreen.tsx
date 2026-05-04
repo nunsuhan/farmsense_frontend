@@ -104,11 +104,12 @@ const FacilityInfoScreen: React.FC = ({ navigation }: any) => {
       return;
     }
 
-    // 시설 ID 및 정보 저장
+    // 시설 ID 및 정보 저장 — id(정수 PK) 보존, localFarmId(사용자 입력)는 별도
+    const numericId = farmInfo?.id ?? (typeof localFarmId === 'number' ? localFarmId : Number(localFarmId)) ?? 0;
     const updatedInfo = farmInfo
-      ? { ...farmInfo, id: localFarmId, name: farmName, crop: variety }
+      ? { ...farmInfo, name: farmName, crop: variety }
       : {
-        id: localFarmId,
+        id: numericId,
         name: farmName,
         crop: variety,
         userId: 'guest',

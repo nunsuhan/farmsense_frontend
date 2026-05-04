@@ -30,6 +30,8 @@ const FarmBasicInfoScreen = () => {
   const route = useRoute<RouteProp<FarmBasicInfoRouteParams, 'FarmBasicInfo'>>();
   const isInitialSetup = !!route.params?.isInitialSetup;
   const { farmInfo, setFarmInfo, setUser, user } = useStore();
+  const currentFarmId = useStore((s) => s.currentFarmId);
+  const loadFarms = useStore((s) => s.loadFarms);
   const { isVisible: showHelp, showHelp: openHelp, closeHelp } = useHelpModal('HELP_FARM_BASIC');
 
   // 기본 정보
@@ -49,7 +51,7 @@ const FarmBasicInfoScreen = () => {
   useEffect(() => {
     if (farmInfo) {
       setFarmName(farmInfo.name || '');
-      setFacilityId(farmInfo.id || '');
+      setFacilityId(''); // facilityId는 사용자 입력 별도 필드. farm.id(정수 PK)를 표시하지 않음.
       setVariety(farmInfo.variety || 'SHINE_MUSCAT');
       setCultivationType(farmInfo.cultivationType || 'RAIN_SHELTER');
       setPlantingYear(farmInfo.plantingYear || '2020');
@@ -100,7 +102,7 @@ const FarmBasicInfoScreen = () => {
 
     const info = {
       ...farmInfo,
-      id: facilityId || farmInfo.id,
+      id: farmInfo.id, // 정수 PK 보존. facilityId는 사용자 입력 별도 필드, PK 덮어쓰기 금지.
       name: farmName,
       variety,
       cultivationType,
@@ -126,6 +128,12 @@ const FarmBasicInfoScreen = () => {
         // 로컬 user 상태에도 onboarding_completed 반영 → RootNavigator가 MainTab으로 자동 전환
         if (user) {
           await setUser({ ...user, onboarding_completed: true });
+        }
+        // 새 농장이 등록됐을 가능성 — 서버에서 농장 목록 다시 가져옴
+        try {
+          await loadFarms();
+        } catch (e) {
+          console.warn('[FarmBasicInfo] loadFarms 실패 (non-blocking):', e);
         }
         // 안전장치: flowMode 전환 타이밍 race 대비
         try {
@@ -234,9 +242,12 @@ const FarmBasicInfoScreen = () => {
                 style={styles.checkButton}
                 onPress={async () => {
                   if (!region) return Alert.alert('알림', '주소를 입력해주세요.');
+                  if (!currentFarmId) {
+                    Alert.alert('알림', '농장을 먼저 등록해주세요.');
+                    return;
+                  }
                   try {
-                    const farmId = farmInfo?.id || 'farm-123';
-                    const result = await farmmapApi.syncFarmGeo(farmId, region);
+                    const result = await farmmapApi.syncFarmGeo(currentFarmId, region);
                     Alert.alert('위치 확인', `${result.message}\n(좌표: ${result.coordinates.lat}, ${result.coordinates.lon})`);
                   } catch (e) {
                     Alert.alert('오류', '주소를 찾을 수 없습니다.');

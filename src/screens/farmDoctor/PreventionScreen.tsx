@@ -4,13 +4,15 @@ import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { dssApi } from '../../services/dssApi';
 import { useStore } from '../../store/useStore';
 import { Ionicons } from '@expo/vector-icons';
+import NoFarmFallback from '../../components/NoFarmFallback';
 
 const PreventionScreen = () => {
-    const farmId = useStore((state) => state.farmInfo?.id) || 'farm-123';
+    const farmId = useStore((state) => state.currentFarmId);
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<any>(null);
 
     const fetchRisk = async () => {
+        if (!farmId) return;
         setLoading(true);
         try {
             // Reusing Dashboard API as it contains disease risk info
@@ -27,6 +29,10 @@ const PreventionScreen = () => {
     useEffect(() => {
         fetchRisk();
     }, [farmId]);
+
+    if (!farmId) {
+        return <NoFarmFallback />;
+    }
 
     return (
         <ScreenWrapper title="예방 진단 (위험도)" showBack={true}>

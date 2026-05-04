@@ -12,7 +12,7 @@ export interface User {
 }
 
 export interface FarmInfo {
-    id: string;
+    id: number;
     userId: string;
     name: string;
     region: string;

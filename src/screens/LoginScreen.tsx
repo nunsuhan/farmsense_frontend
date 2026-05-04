@@ -38,6 +38,7 @@ type PhoneStep = 'INPUT' | 'VERIFY';
 const LoginScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const setUser = useStore((state) => state.setUser);
+  const loadFarms = useStore((state) => state.loadFarms);
 
   const [loginMethod, setLoginMethod] = useState<'phone' | 'email'>('email');
   const [email, setEmail] = useState('');
@@ -77,6 +78,8 @@ const LoginScreen: React.FC = () => {
       await new Promise(resolve => setTimeout(resolve, 300));
       const profile = await authApi.getFullProfile();
       await setUser(profile as any);
+      const result = await loadFarms();
+      console.log('[Login] loadFarms result:', result);
       navigation.reset({ index: 0, routes: [{ name: 'MainTab' }] });
     } catch (error: any) {
       Alert.alert('로그인 실패', error.message || '이메일 또는 비밀번호를 확인해주세요.');
@@ -126,6 +129,13 @@ const LoginScreen: React.FC = () => {
         await setUser(profile as any);
       } catch {
         // 프로필 로드 실패해도 로그인은 진행
+      }
+
+      // 농장 목록 fetch (신규/기존 모두). 신규 사용자는 농장이 0개라서 빈 list로 끝남.
+      try {
+        await loadFarms();
+      } catch (e) {
+        console.warn('[Login] loadFarms failed (non-blocking):', e);
       }
 
       // Issue #5: 신규 사용자는 분기 화면으로, 기존 사용자는 RootNavigator가 onboarding_completed로 분기

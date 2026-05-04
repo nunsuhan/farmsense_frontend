@@ -311,7 +311,7 @@ export interface QnAResponse {
 // ==================== FarmMap Types ====================
 
 export interface Farm {
-  id: string;
+  id: number;
   name: string;
   owner: string;
   crop: string;

@@ -4,9 +4,10 @@ import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { dssApi } from '../../services/dssApi';
 import { useStore } from '../../store/useStore';
 import { Ionicons } from '@expo/vector-icons';
+import NoFarmFallback from '../../components/NoFarmFallback';
 
 const HarvestPredictionScreen = () => {
-    const farmId = useStore((state) => state.farmInfo?.id) || 'farm-123';
+    const farmId = useStore((state) => state.currentFarmId);
     const farmInfo = useStore((state) => state.farmInfo);
 
     const [clusterCount, setClusterCount] = useState('');
@@ -15,6 +16,10 @@ const HarvestPredictionScreen = () => {
     const [loading, setLoading] = useState(false);
 
     const handlePredict = async () => {
+        if (!farmId) {
+            Alert.alert('알림', '농장을 먼저 등록해주세요.');
+            return;
+        }
         if (!clusterCount || parseInt(clusterCount) <= 0) {
             Alert.alert('입력 오류', '착과 송이수를 입력해주세요.');
             return;
@@ -41,6 +46,10 @@ const HarvestPredictionScreen = () => {
             setLoading(false);
         }
     };
+
+    if (!farmId) {
+        return <NoFarmFallback />;
+    }
 
     return (
         <ScreenWrapper title="수확 예측" showBack={true}>
