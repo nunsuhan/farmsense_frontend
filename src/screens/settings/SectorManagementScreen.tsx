@@ -24,6 +24,7 @@ import { useStore } from '../../store/useStore';
 import { FarmSector } from '../../types/storeTypes';
 import * as Location from 'expo-location';
 import { farmmapApi } from '../../services/farmmapApi';
+import NoFarmFallback from '../../components/NoFarmFallback';
 
 const { width, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const LIST_PANEL_HEIGHT = SCREEN_HEIGHT * 0.55; // Default height for list
@@ -165,6 +166,11 @@ const SectorManagementScreen: React.FC = () => {
             }, 500);
         })();
     }, []);
+
+    // 농장 미선택 시 fallback (PR-1 다른 화면과 일관). 모든 hook 호출 이후 위치.
+    if (!currentFarmId) {
+        return <NoFarmFallback />;
+    }
 
     const handleMapPress = (e: MapPressEvent) => {
         if (!isDrawing) return;
