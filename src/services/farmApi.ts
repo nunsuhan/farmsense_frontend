@@ -32,6 +32,24 @@ export const farmApi = {
     const response = await apiClient.get<Farm>(`/farms/${id}/`);
     return response.data;
   },
+
+  /**
+   * POST /api/farms/
+   * user는 백엔드 perform_create가 자동 주입.
+   * 필수: name. 나머지(address/total_area/latitude/longitude/is_export_farm)는 optional.
+   */
+  createFarm: async (data: Partial<Farm>): Promise<Farm> => {
+    const response = await apiClient.post<Farm>('/farms/', data);
+    return response.data;
+  },
+
+  /**
+   * PATCH /api/farms/{id}/
+   */
+  updateFarm: async (id: number, data: Partial<Farm>): Promise<Farm> => {
+    const response = await apiClient.patch<Farm>(`/farms/${id}/`, data);
+    return response.data;
+  },
 };
 
 export default farmApi;

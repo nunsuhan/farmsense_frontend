@@ -21,6 +21,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { farmmapApi } from '../../services/farmmapApi';
 import { authApi } from '../../services/authApi';
 import AddressSearchModal from '../../components/AddressSearchModal';
+import { farmApi, Farm } from '../../services/farmApi';
 
 type FarmBasicInfoRouteParams = {
   FarmBasicInfo: { isInitialSetup?: boolean };
@@ -99,32 +100,60 @@ const FarmBasicInfoScreen = () => {
       return;
     }
 
-    if (!farmInfo) {
-      Alert.alert('오류', '초기 농장 정보가 없습니다.');
+    // 백엔드(Farm 모델)가 받는 필드만 추림. variety/cultivationType/plantingYear/budBreakDate/
+    // harvestTargetDate/hasDrainage 등 클라이언트 전용 필드는 PR-2에서 백엔드 모델 확장 후 sync.
+    const farmData: Partial<Farm> = {
+      name: farmName,
+      address: region,
+    };
+
+    let savedFarm: Farm;
+    try {
+      if (currentFarmId) {
+        savedFarm = await farmApi.updateFarm(currentFarmId, farmData);
+      } else {
+        savedFarm = await farmApi.createFarm(farmData);
+      }
+    } catch (e: any) {
+      console.error('[FarmBasicInfo] save failed:', e);
+      const msg = e?.response?.data?.error || e?.response?.data?.detail || e?.message || '농장 저장에 실패했습니다.';
+      Alert.alert('오류', msg);
       return;
     }
 
-    const info = {
-      ...farmInfo,
-      id: farmInfo.id, // 정수 PK 보존. facilityId는 사용자 입력 별도 필드, PK 덮어쓰기 금지.
-      name: farmName,
+    // 좌표 동기화 (non-blocking)
+    try {
+      await farmmapApi.syncFarmGeo(savedFarm.id, region);
+    } catch (e) {
+      console.warn('[FarmBasicInfo] syncFarmGeo failed (non-blocking):', e);
+    }
+
+    // store 갱신 (farmList + currentFarmId + farmInfo 호환 필드)
+    try {
+      await loadFarms();
+    } catch (e) {
+      console.warn('[FarmBasicInfo] loadFarms after save failed (non-blocking):', e);
+    }
+
+    // 클라이언트 전용 필드(variety/cultivationType/plantingYear/budBreakDate/harvestTargetDate/hasDrainage)는
+    // 현재 백엔드 모델에 없음 — store의 farmInfo(deprecated)에 잠시 보존.
+    const localOnlyFields = {
+      ...(farmInfo ?? {}),
+      id: savedFarm.id,
+      userId: (farmInfo?.userId ?? '') as string,
+      name: savedFarm.name,
+      address: savedFarm.address,
+      region: region,
       variety,
       cultivationType,
       plantingYear,
-      address: region,
-      region: region,
       budBreakDate,
       harvestTargetDate,
       hasDrainage,
-    };
-
-    try {
-      await farmmapApi.syncFarmGeo(farmInfo.id, region);
-    } catch (e) {
-      console.log('Geo Sync Failed silently');
+    } as typeof farmInfo;
+    if (localOnlyFields) {
+      await setFarmInfo(localOnlyFields);
     }
-
-    await setFarmInfo(info);
 
     if (isInitialSetup) {
       try {
@@ -132,12 +161,6 @@ const FarmBasicInfoScreen = () => {
         // 로컬 user 상태에도 onboarding_completed 반영 → RootNavigator가 MainTab으로 자동 전환
         if (user) {
           await setUser({ ...user, onboarding_completed: true });
-        }
-        // 새 농장이 등록됐을 가능성 — 서버에서 농장 목록 다시 가져옴
-        try {
-          await loadFarms();
-        } catch (e) {
-          console.warn('[FarmBasicInfo] loadFarms 실패 (non-blocking):', e);
         }
         // 안전장치: flowMode 전환 타이밍 race 대비
         try {
