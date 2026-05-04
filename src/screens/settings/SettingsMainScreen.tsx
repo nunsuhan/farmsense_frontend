@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { useStore } from '../../store/useStore'; // 전역 스토어 사용
+import FarmSwitcher from '../../components/FarmSwitcher';
 
 const SettingsMainScreen = () => {
   const navigation = useNavigation();
@@ -108,7 +109,7 @@ const SettingsMainScreen = () => {
   };
 
   return (
-    <ScreenWrapper title="설정" showBack={false} showMenu={false}>
+    <ScreenWrapper showBack={false} showMenu={false} headerCenter={<FarmSwitcher />}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* 헤더 섹션 */}
         <View style={styles.headerSection}>

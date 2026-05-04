@@ -15,6 +15,7 @@ interface ScreenWrapperProps {
   showHeader?: boolean;
   useBottomInset?: boolean;
   headerRight?: React.ReactNode;
+  headerCenter?: React.ReactNode; // 가운데 슬롯 — title 대신 컴포넌트 (예: FarmSwitcher)
   showMenu?: boolean; // New prop for hamburger menu
 }
 
@@ -34,6 +35,7 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   useBottomInset = false,
   showMenu = false,
   headerRight,
+  headerCenter,
 }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
@@ -55,7 +57,7 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
       />
 
       {/* Header */}
-      {showHeader && (title || showBack || showMenu || headerRight) && (
+      {showHeader && (title || showBack || showMenu || headerRight || headerCenter) && (
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             {showBack && (
@@ -65,7 +67,7 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
             )}
           </View>
           <View style={styles.headerTitleContainer}>
-            {title && <Text style={styles.headerTitle}>{title}</Text>}
+            {headerCenter ?? (title ? <Text style={styles.headerTitle}>{title}</Text> : null)}
           </View>
           <View style={styles.headerRight}>
             {headerRight}

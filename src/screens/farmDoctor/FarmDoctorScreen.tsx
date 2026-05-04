@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { Ionicons } from '@expo/vector-icons';
+import FarmSwitcher from '../../components/FarmSwitcher';
 
 const FarmDoctorScreen = () => {
     const navigation = useNavigation<any>();
@@ -21,7 +22,7 @@ const FarmDoctorScreen = () => {
     );
 
     return (
-        <ScreenWrapper title="건강 체크" showBack={false} showMenu={false}>
+        <ScreenWrapper showBack={false} showMenu={false} headerCenter={<FarmSwitcher />}>
             <ScrollView contentContainerStyle={styles.container}>
 
                 {/* Header Section */}

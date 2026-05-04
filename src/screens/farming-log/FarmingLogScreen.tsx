@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ScreenWrapper } from '../../components/common/ScreenWrapper';
 import { Text } from '../../components/common/Text';
 import { Card } from '../../components/common/Card';
+import FarmSwitcher from '../../components/FarmSwitcher';
 import { colors, shadows, spacing } from '../../theme/colors';
 import { FarmingLogEntry, CATEGORY_LABELS } from './types';
 
@@ -87,7 +88,7 @@ export const FarmingLogScreen: React.FC = () => {
     };
 
     return (
-        <ScreenWrapper style={{ backgroundColor: colors.background }} showMenu={true}>
+        <ScreenWrapper style={{ backgroundColor: colors.background }} showMenu={false} headerCenter={<FarmSwitcher />}>
             {/* 1. Header removed as it is in ScreenWrapper now or we keep it? 
                Wait, ScreenWrapper header has menu button. 
                FarmingLogScreen has its own custom header "영농일지".
